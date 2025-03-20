@@ -1,0 +1,1 @@
+# POS_Django_Project
