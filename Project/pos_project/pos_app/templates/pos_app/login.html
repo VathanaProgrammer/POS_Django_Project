@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="Description" content="Enter your description here"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<title>Title</title>
+</head>
+<body class="d-flex justify-content-center">
+    <form id="login-form" class="row" action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="col-12">
+            <label for="name" class="form-label">Username</label>
+            <input type="text" name="username" class="form-control" placeholder="Enter username">
+        </div>
+        <div class="col-12">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" name="password" id="" class="form-control" placeholder="Enter password">
+        </div>
+        <div class="col-12">
+            <button class="btn btn-success" type="submit">Login</button>
+        </div>
+    </form>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("#login-form").submit(function(e) {
+            e.preventDefault(); // Prevent default form submission
+    
+            var formData = new FormData(this); // Collect form data including image file
+    
+            $.ajax({
+                type: "POST",
+                url: "{% url 'login' %}", // The URL for the Django view
+                data: formData, // Sending the form data
+                headers: {
+                    'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()  // Add CSRF token to request
+                },
+                processData: false, // Don't let jQuery process the data
+                contentType: false, // Don't set content-type header (FormData handles it)
+                success: function(response) {
+                    console.log("Success:", response.message); // Log the response to check structure
+                    window.location.href = '/';
+                },
+                error: function(response) {
+                    alert(response.message);  // Show more specific error info
+                    // Log the full error response
+                    
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="Description" content="Enter your description here"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<title>Title</title>
+</head>
+<body class="container d-flex h-100 w-100 justify-content-center align-items-center" >
+    <form id="register-form" class="row" action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="col-12">
+            <label for="name" class="form-label">Username</label>
+            <input type="text" name="username" class="form-control" placeholder="Enter username">
+        </div>
+        <div class="col-12">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" name="password" id="" class="form-control" placeholder="Enter password">
+        </div>
+        <div class="col-12">
+            <select class="form-select" name="role">
+                <option value="Admin">Admin</option>
+                <option value="Cashier">Cashier</option>
+            </select>
+        </div>
+        <div class="col-12">
+            <label for="image" class="form-label">Image</label>
+            <input type="file" name="image" class="form-control">
+        </div>
+        <div class="col-12">
+            <button class="btn btn-success" type="submit">Register</button>
+        </div>
+    </form>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function(){
+    $("#register-form").submit(function(e) {
+        e.preventDefault(); // Prevent default form submission
+    
+        var formData = new FormData(this); // Collect form data including image file
+    
+        $.ajax({
+            type: "POST",
+            url: "{% url 'register' %}", // The URL for the Django view
+            data: formData, // Sending the form data
+            processData: false, // Don't let jQuery process the data
+            contentType: false, // Don't set content-type header (FormData handles it)
+            success: function(response) {
+                alert(response.status)
+            },
+            error: function(response) {
+                alert(response.message);
+            }
+        });
+    });
+    
+})
+</script>
+</body>
+</html>
