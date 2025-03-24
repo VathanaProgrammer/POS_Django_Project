@@ -1,0 +1,385 @@
+{% extends "pos_app/base.html" %}
+{% block title %} Pos | Inventory {% endblock title %}
+{% block content %}
+<style>
+    .btn-new{
+        background-color: #007C40 !important;
+    }
+    .shadow-new{
+        box-shadow: 2px 3px 3px 2px rgb(151, 151, 151); /* X: 2px, Y: 4px, Blur: 4px, Spread: 2px, Color: #000 */
+    }
+    .inventory_container{
+        width: 100% !important;
+    }
+    .product_section{
+        width: 70% !important;
+    }
+    .low_stock_section{
+        width: 30% !important;
+    }
+    .custom-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .custom-dropdown-btn {
+        background-color: #007C40;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .custom-dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: white;
+        min-width: 160px;
+        box-shadow: 2px 3px 3px 2px rgb(151, 151, 151);
+        border-radius: 5px;
+        opacity: 0;
+        transform: translateY(0px);
+        visibility: hidden;
+        pointer-events: none;
+        transition: all 0.3s ease-in-out;
+        z-index: 10;
+    }
+
+    .custom-dropdown-menu.show {
+        opacity: 1;
+        transform: translateY(10px);
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .custom-dropdown-menu li {
+        list-style: none;
+    }
+
+    .custom-dropdown-menu li a {
+        display: block;
+        padding: 10px 15px;
+        text-decoration: none;
+        color: black;
+    }
+
+    .custom-dropdown-menu li a:hover {
+        background-color: #f0f0f0;
+    }
+    .custom-dropdown-btn i {
+    transition: all 0.3s ease;
+}
+
+.rotate {
+    transform: rotate(180deg);
+}
+
+#search:focus{
+        border: none !important;
+        outline: none; /* Removes the default focus outline */
+    }
+    input::placeholder{
+        color: rgb(216, 216, 216) !important;
+    }
+
+    #add_product {
+        opacity: 0;
+        pointer-events: none;
+        position: absolute !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.4s ease;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scaleY(.2);
+        z-index: 99 !important;
+        background: white !important;
+    }
+    #add_category{
+        opacity: 0;
+        pointer-events: none;
+        position: absolute !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.4s ease;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scaleY(.2);
+        z-index: 99 !important;
+        background: white !important;
+    }
+    #add_product.show_add_pro_form {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        transform: translate(-50%, -50%) scaleY(1);
+    }
+    #add_category.show_add_pro_form {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        transform: translate(-50%, -50%) scaleY(1);
+    }
+    #category{
+        opacity: 0;
+        pointer-events: none;
+        position: absolute !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.4s ease;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scaleY(.2);
+        z-index: 99 !important;
+        background: white !important;
+    }
+    #category.show_add_pro_form{
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        transform: translate(-50%, -50%) scaleY(1);
+    }
+    
+    @keyframes scaleAnimation {
+    0% {
+        transform: translate(-50%, -50%) scaleY(0.1);  /* Start with 20% size */
+        opacity: 0;
+    }
+    10% {
+        transform: translate(-50%, -50%) scaleY(0.2);  /* Pause at 20% size */
+        opacity: 1;  /* Show full opacity */
+    }
+    100% {
+        transform: translate(-50%, -50%) scaleY(1);  /* Full size */
+        opacity: 1;
+    }
+}
+</style>
+
+
+<div class="inventory_container d-flex mt-4">
+    <section class="product_section d-flex m-3 me-2 justify-content-between">
+        <div id="categoriess" class="btn-new shadow-new text-white px-4 py-2 d-flex align-items-center">
+            <a class="" href="#" role="button" id="" data-bs-toggle="" aria-expanded="false">
+                Categories
+              </a>
+        </div>
+        <div class="d-flex ">
+            <div class="btn-new py-2 me-2 px-3 shadow-new d-flex align-items-center">
+                <i class="fa-regular fa-bell text-white fs-5"></i>
+            </div>
+            <div class="custom-dropdown btn-new  text-white shadow-new">
+                <button class="custom-dropdown-btn px-4" id="new_pro_or_cate">
+                    <span class="fs-5 fw-bold">New</span>
+                    <i class="fa-solid fa-chevron-up ms-2" id="dropdownIcon_new"></i>
+                </button>
+                <ul class="custom-dropdown-menu" id="dropdownmenu_new">
+                    <li><a href="#" id="new_cate_click">New Category</a></li>
+                    <li><a href="#" id="new_pro_click">New Product</a></li>
+                </ul>
+            </div>
+        </div>
+    </section>
+    <section class="low_stock_section d-flex m-3 ms-2">
+    </section>
+</div>
+<div class="d-flex mt-0 p-0">
+    <section class="product_section d-flex flex-column m-3 me-2 justify-content-between  shadow-new bg-white"  style="height: 100% !important; ">
+
+        <div class="d-flex justify-content-between w-100">
+            <div class="custom-dropdown shadow-new btn-new m-3">
+                <button class="custom-dropdown-btn d-flex align-items-center justify-content-between" id="dropdownBtn">
+                    <span id="selectedCategory_normal">
+                        {% if categories %}
+                            {{ categories.0.name }}
+                        {% else %}
+                            Category
+                        {% endif %}
+                    </span>
+                    <i class="fa-solid fa-chevron-up ms-2" id="dropdownIcon"></i>
+                </button>            
+                {% if categories|length > 1 %}
+                <ul class="custom-dropdown-menu" id="dropdownMenu">
+                    {% for category in categories|slice:"1:" %}
+                        <li><a href="#" class="category-item">{{ category.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            </div>            
+            <div class="d-flex align-items-center ms-3 me-2">
+                <input class="text-white"
+                    id="search"
+                    type="text"
+                    placeholder="Search items here"
+                    style="height: 40px; border-radius: 20px; background-color: rgb(170, 170, 170); padding: 0 15px; border: none; cursor: pointer; color: white;" />
+                <button type="button"
+                    style="background-color: rgb(2, 119, 55); border: none; border-radius: 50%; padding: 10px; margin-left: 5px; display: flex; align-items: center; justify-content: center; height: 40px; width: 40px; cursor: pointer;">
+                    <i class="fa-solid fa-magnifying-glass text-white"></i>
+                </button>
+            </div>
+        </div>
+        <div class="table_container mt-3" style="height: 500px !important; overflow: auto !important;">
+            <table class="table table-hover text-center">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>SKU</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                   {% if products %}
+                        {% for product in products %}
+                            <tr>
+                                <td class="pt-3">{{ product.name }}</td>
+                                <td class="pt-3">{{ product.sku }}</td>
+                                <td class="pt-3">{{ product.quantity_in_stock }}</td>
+                                <td class="pt-3">{{ product.price }}</td>
+                                <td class="pt-3">{{ product.status }}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-edit" data-product_id="{{ product.id }}" data-category_id="{{product.category.id}}" data-category_name="{{ product.category.name}}">Edit</button>
+                                    <button class="btn btn-danger btn-delete" data-product_id="{{ product.id }}" data-category_id="{{product.category.id}}" data-category_name="{{ product.category.name}}">Delete</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                            <p class="text-center">Products empty.</p>
+                   {% endif %}
+                </tbody>
+            </table>
+        </div>
+          
+    </section>
+    <section class="low_stock_section d-flex flex-column m-3 ms-2 p-4 shadow-new bg-white" style="height: 100% !important; overflow: auto !important;">
+                <h1 class="text-start fs-3 fw-bold ">Low Stock</h1>
+                <div class="low_stock_table_container mt-4 pt-2">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Quantity Left</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+    
+                        </tbody>
+                    </table>
+                </div>
+    </section>
+
+
+</div>
+<form method="post" id="add_product" class="add_product_container d-flex flex-column shadow-new p-4" style="min-height: 600px !important; max-width: 500px !important;">
+    {% csrf_token %}  <!-- Add this line -->
+    <header class="d-flex justify-content-between w-100 align-items-center px-3">
+        <h2 class="fs-2 fw-bold " id="add_product_header">Add New Product</h2>
+        <div class="custom-dropdown shadow-new btn-new m-3">
+            <button class="custom-dropdown-btn d-flex align-items-center justify-content-between" id="dropdownBtn_in_add_proForm">
+                <span id="selectedCategory" data-id="{{ categories.0.id }}">
+                    {% if categories %}
+                        {{ categories.0.name }}
+                    {% else %}
+                        Category
+                    {% endif %}
+                </span>
+                <i class="fa-solid fa-chevron-up ms-2" id="dropdownIcon_in_add_proForm"></i>
+            </button>            
+        
+            <ul class="custom-dropdown-menu" id="dropdownMenu_in_add_proForm">
+                {% for category in categories %}
+                    <li><a href="#" data-id="{{ category.id }}" class="category-item">{{ category.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>        
+    </header>
+    <section class="row mx-2">
+        <div class="col-12 mb-1">
+            <label for="name" class="form-label fs-5 fw-bold">Name</label>
+            <input id="pro_name" type="text" class="form-control" placeholder="Enter product name">
+        </div>
+        <div class="col-12 mb-1">
+            <label for="SKU" class="form-label fs-5 fw-bold">SKU</label>
+            <input id="SKU" type="text" class="form-control" placeholder="Enter product SKU">
+        </div>
+        <div class="col-12 mb-1">
+            <label for="quantity" class="form-label fs-5 fw-bold">Quantity</label>
+            <input id="qty" type="text" class="form-control" placeholder="Enter product quantity">
+        </div>
+        <div class="col-12 mb-1">
+            <label for="price" class="form-label fs-5 fw-bold">Price</label>
+            <input id="price" type="text" class="form-control" placeholder="Enter product price">
+        </div>
+        <div class="col-12 mb-1">
+            <label for="image" class="form-label fs-5 fw-bold">Image</label>
+            <input  id="image" type="file" class="form-control" placeholder="Enter product name">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <input id="product_id" type="hidden" type="text" class="form-control">
+        </div>
+    </section>
+    <section class="d-flex justify-content-between w-100 px-4 p-2 mt-auto"> 
+        <button id="add_cancel" class="btn-new shadow-new px-4 py-2 text-white  fs-5 fw-bold" style="background: #F9A013 !important; border: none !important; outline: none !important;">Cancel</button>
+        <button id="btn_add_new_pro" class="btn-new shadow-new px-4 py-2 text-white fs-5 fw-bold" style="border: none !important; outline: none !important;">Add</button>
+    </section>
+</form>
+
+<form method="post" id="add_category" class="add_category_container d-flex flex-column shadow-new p-4" style="min-height: 600px !important; min-width: 500px !important;">
+    <header class="d-flex justify-content-between w-100 align-items-center px-3">
+        <h2 class="fs-2 fw-bold ">Add New Category</h2>
+    </header>
+    <section class="row mx-0 w-100">
+        <div class="col-12 mb-1 w-100">
+            <label for="name" class="form-label fs-5 fw-bold">Name</label>
+            <input type="text" id="category_name"  class="form-control" placeholder="Enter product name">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        </div>
+    </section>
+    <section class="d-flex justify-content-between w-100 px-4 p-2 mt-auto"> 
+        <button id="add_cate_cancel" class="btn-new shadow-new px-4 py-2 text-white  fs-5 fw-bold" style="background: #F9A013 !important; border: none !important;
+        outline: none !important;">Cancel</button>
+        <button id="btn_submit_category" class="btn-new shadow-new px-4 py-2 text-white fs-5 fw-bold" style="border: none !important;
+        outline: none !important;">Add</button>
+    </section>
+</form>
+
+<div method="" id="category" class="add_category_container d-flex flex-column shadow-new p-4" style="min-height: 600px !important; min-width: 500px !important;">
+    <header class="d-flex justify-content-between w-100 align-items-center px-3">
+        <h2 class="fs-2 fw-bold ">All Categories</h2>
+    </header>
+    <div class="table_container w-100">
+        <table class="table table-hover text-center">
+            <thead>
+                <tr>
+                    <th>Category Name</th>
+                    <th>
+                        Action
+                    </th>
+                </tr>
+                <tbody>
+                    {% if categories%}
+                    {% for category in categories %}
+                    <tr>
+                        <td>
+                            {{category.name}}
+                        </td>
+                        <td>
+                            <button class="btn btn-warning btn-edit" data-category_id="{{ category.id }}">Edit</button>
+                            <button class="btn btn-danger btn-delete" data-category_id="{{ category.id }}">Delete</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {%endif%}
+                </tbody>
+            </thead>
+        </table>
+    </div>
+    <section class="d-flex justify-content-between w-100 px-4 p-2 mt-auto"> 
+        <button id="add_cate_close" class="btn-new shadow-new px-4 py-2 text-white  fs-5 fw-bold" style="background: #F9A013 !important; border: none !important;
+        outline: none !important;">Close</button>
+    </section>
+</div>
+{% endblock content %}

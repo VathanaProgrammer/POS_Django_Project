@@ -1,0 +1,219 @@
+<script>
+      $(document).ready(function(){
+        let isProduct_update = false;
+        let logout_btn = $('#logout');;
+    logout_btn.click(function(e){
+        e.preventDefault();
+        
+        showAlert('Confirm', 'warning', 'Do you really want to logout?', true)
+        .then((result) =>{
+            if(result.isConfirmed){
+                $.ajax({
+                url: "{% url 'logout' %}",
+                type: "GET",
+                success: function(response){
+                    console.log(response.message);
+                    window.location.href = '{% url "login_form" %}';
+                },
+                error: function(response){
+                    alert('logout was failed !')
+                }
+            })
+            }else{
+                return;
+            }
+        })
+    })
+    function showAlert(title, icon, text, showCancel = false, confirmText = "OK", cancelText = "Cancel") {
+        return Swal.fire({
+            title: title,
+            icon: icon,
+            text: text,
+            showCancelButton: showCancel,
+            confirmButtonText: confirmText,
+            cancelButtonText: cancelText
+        });
+    }
+    $("#btn_submit_category").click(function (e) {
+        e.preventDefault();
+    let name = $("#category_name").val().trim();
+    console.log($);
+
+    // Just to make sure user doesn't send empty category
+    if (name === '') {
+        showAlert('Warning', 'warning', 'Category name cannot be empty.');
+        return;
+    }
+
+    let csrf_token = $('input[name=csrfmiddlewaretoken]').val();
+
+    showAlert('Confirm', "warning", `Are you sure you want to add "${name}" as your category?`, true)
+        .then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "{% url 'register_category' %}",
+                    type: 'POST',
+                    data: {
+                        'category_name': name,
+                        'csrfmiddlewaretoken': csrf_token
+                    },
+                    success: function (response) {
+                        if (response.status === 'success') {
+                            $("#category_name").val('');
+                            showAlert('Success', 'success', response.message || 'Category added successfully!');
+                        } else {
+                            showAlert('Warning', 'warning', response.message || 'Failed to add category.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        showAlert('Error', 'error', 'Something went wrong: ' + error);
+                    }
+                });
+            }
+        });
+
+        $('.category-item').click(function(e){
+            e.preventDefault();
+            let selected = $(this).text();
+            $('#selectedCategory').text(selected);
+        });
+    })
+        // When a category is selected from the dropdown
+        $('#dropdownMenu_in_add_proForm li').click(function(e) {
+            e.preventDefault();
+        var categoryName = $(this).text(); // Get the category name
+        var categoryId = $(this).data('id'); // Get the category ID from the 'data-id' attribute
+
+        // Update the dropdown button to show the selected category
+        $('#selectedCategory').text(categoryName);  // Set category name to the button
+        $('#selectedCategory').data('id', categoryId);  // Store category ID in data-id
+
+        // Optionally, toggle the dropdown (close it after selection)
+        $('#dropdownMenu_in_add_proForm').toggleClass('show');
+    });
+    $('#btn_add_new_pro').click(function(e) {
+        e.preventDefault();
+        const product_id = $("#product_id").val();
+        const product_name = $("#pro_name").val();
+        const SKU = $('#SKU').val();
+        const price = $('#price').val();
+        const qty = $("#qty").val();
+        const image = $("#image")[0].files[0]; // Get the selected file (first file)
+
+        // Get the selected category ID
+        let categoryId = document.getElementById("selectedCategory").getAttribute("data-id");
+        
+        // Check if category is selected
+        if (!categoryId) {
+            showAlert('Error', 'error', 'Please select a category.');
+            console.log("Sending Form Data:", product_name, SKU, price, qty, categoryId, image);
+            return;
+        }
+
+        if(!isProduct_update){
+                    // Show confirmation alert
+        showAlert('Confirm', "question", 'Are you sure you want to add ' + product_name + '?', true)
+        .then((result) => {
+            if (result.isConfirmed) {
+                // Create FormData for the AJAX request
+                var formData = new FormData();
+                formData.append('product_name', product_name);
+                formData.append('SKU', SKU);
+                formData.append('price', price);
+                formData.append('qty', qty);
+                formData.append('category', categoryId); // Send category ID
+                formData.append('image', image); // Append the image file
+
+                // AJAX request to submit the form data
+                $.ajax({
+                    url: "{% url 'add_product'%}",
+                    type: "POST",
+                    data: formData,
+                    processData: false,  // Important for file uploads
+                    contentType: false,  // Important for file uploads
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}' // CSRF token for Django
+                    },
+                    success: function(response) {
+                        if (response.status == "error") {
+                            showAlert('Warning', 'warning', response.message);
+                        } else {
+                            showAlert('Success', 'success', response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showAlert('Error', 'error', 'An error occurred while adding the product.');
+                    }
+                });
+            }
+        });
+        }else{
+            showAlert('Confirm', "question", 'Are you sure you want to update ' + product_name + '?', true)
+        .then((result) => {
+            if (result.isConfirmed) {
+                // Create FormData for the AJAX request
+                var formData = new FormData();
+                formData.append('product_id', product_id);
+                formData.append('product_name', product_name);
+                formData.append('SKU', SKU);
+                formData.append('price', price);
+                formData.append('qty', qty);
+                formData.append('category', categoryId); // Send category ID
+                formData.append('image', image); // Append the image file
+
+                // AJAX request to submit the form data
+                $.ajax({
+                    url: "{% url 'update_product'%}",
+                    type: "POST",
+                    data: formData,
+                    processData: false,  // Important for file uploads
+                    contentType: false,  // Important for file uploads
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}' // CSRF token for Django
+                    },
+                    success: function(response) {
+                        if (response.status == "error") {
+                            showAlert('Warning', 'warning', response.message);
+                        } else {
+                            showAlert('Success', 'success', response.message);
+                            isProduct_update = false;
+                            console.log('While update product: '+ isProduct_update)
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showAlert('Error', 'error', 'An error occurred while adding the product.');
+                    }
+                });
+            }
+        });
+        
+        }
+        
+    });
+
+    $(document).on('click', '.btn-edit', function(){
+        const product_id = $(this).data('product_id');
+        const tr = $(this).closest('tr');
+        const product_name = tr.find('td:eq(0)').text();   // index 0 = product name
+        const sku = tr.find('td:eq(1)').text();
+        const qty = tr.find('td:eq(2)').text();
+        const price = tr.find('td:eq(3)').text();  // index 3 = price
+        const category_id = $(this).data('category_id');
+        const category_name = $(this).data('category_name');
+        // showAlert('Test', 'success', category_id)
+        $('#add_product').toggleClass('show_add_pro_form');
+        $('#add_product_header').text('Update Product');
+        $('#selectedCategory').text(category_name);
+        $('#pro_name').val(product_name);
+        $('#SKU').val(sku);
+        $("#qty").val(qty);
+        $('#price').val(price);
+        $('#btn_add_new_pro').text('Update');
+        isProduct_update = true;
+        $('#product_id').val(product_id);
+    })
+    console.log(isProduct_update)
+});
+
+    
+</script>

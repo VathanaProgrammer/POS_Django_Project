@@ -4,6 +4,7 @@ from .forms import UserRegistrationForm, UserLoginForm
 from .models import User
 from django.contrib.auth import authenticate, login 
 from django.contrib.auth import logout
+from .models import Category, Product
 # Create your views here.
 def home(request):
     users = User.objects.all()
@@ -12,7 +13,6 @@ def home(request):
     return render(request, 'pos_app/base.html')
 def register_form(request):
     return render (request, 'pos_app/test_register.html')
-from django.contrib import messages
 
 def register(request):
     if request.method == 'POST':
@@ -55,17 +55,105 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            # Log the user in if authentication is successful
             login(request, user)
             return JsonResponse({'status': 'success', 'message': 'Login successful!'})
         else:
-            # Return an error message if authentication fails
             return JsonResponse({'status': 'error', 'message': 'Invalid username or password!'}, status=400)
 
-    return render(request, 'login_form.html')
+    return render(request, 'pos_app/login_form.html')
 def login_form(request):
     return render(request, 'pos_app/login.html')
 
 def logout_user(request):
     logout(request)  # This will destroy the session
-    return JsonResponse({'status': 'success', 'message': 'Logout successful'})
+    return JsonResponse({'message': 'Logout sucess!'})
+def inventory_view(request):
+    categories = Category.objects.all()
+    for category in categories:
+        print(f'Category name: {category.name}, Category ID: {category.id}')
+    products = Product.objects.all()
+    if not products.exists():  # Check if no products exist
+        print('Product is empty.')
+    else:
+        for product in products:
+            print(f"Product ID: {product.id}, Product Name: {product.name}, Category: {product.category}, status: {product.status}")
+    return render(request, 'pos_app/inventory.html', {'categories': categories, 'products': products})
+
+
+def register_category(request):
+    if request.method == 'POST':
+        name = request.POST.get('category_name')
+        if name:
+            # Save new category
+           if Category.objects.filter(name=name).exists():
+            return JsonResponse({'status': 'error', 'message': 'Category already exists!'})
+           else:
+            Category.objects.create(name=name)
+            return JsonResponse({'status': 'success', 'message': 'Category was added!'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Name is required'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+def add_product(request):
+    if request.method == "POST" and request.FILES.get('image'):
+        # Handle file upload
+        image = request.FILES['image']
+        name = request.POST.get('product_name')
+        sku = request.POST.get('SKU')
+        category_id = request.POST.get('category')
+        quantity_in_stock = request.POST.get('qty')
+        price = request.POST.get('price')
+         # Get the Category instance based on the ID
+        category = Category.objects.get(id=category_id)
+        if Product.objects.filter(name =name):
+            return JsonResponse({'status': "error", "message": f"{name} is already exits please choose different one."})
+        else:
+            product = Product.objects.create(name=name, image=image, sku=sku, category=category, quantity_in_stock=quantity_in_stock, price=price)
+            return JsonResponse({"status": "success", "message": "Product was added."})
+    else:
+        return JsonResponse({"status": "success", "message": "Opss! something went wrong."})
+        
+from django.http import JsonResponse
+from .models import Product, Category
+
+def update_product(request):
+    if request.method == "POST":
+        try:
+            product_id = request.POST.get('product_id')
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Product not found.'})
+        
+        # Get updated data
+        name = request.POST.get('product_name')
+        sku = request.POST.get('SKU')
+        category_id = request.POST.get('category')
+        quantity_in_stock = request.POST.get('qty')
+        price = request.POST.get('price')
+        
+        # Update fields
+        product.name = name
+        product.sku = sku
+        product.quantity_in_stock = quantity_in_stock
+        product.price = price
+
+        # Update category if exists
+        if category_id:
+            try:
+                category = Category.objects.get(id=category_id)
+                product.category = category
+            except Category.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Invalid category selected.'})
+        
+        # Update image if new one uploaded
+        if request.FILES.get('image'):
+            image = request.FILES['image']
+            product.image = image
+        else:
+            image = product.image
+            print('Kepp the old image')
+        product.save()
+
+        return JsonResponse({'status': 'success', 'message': 'Product updated successfully.'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})

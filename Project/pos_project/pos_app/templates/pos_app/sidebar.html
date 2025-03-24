@@ -5,13 +5,13 @@
             <!-- Brand (logo + name) -->
             <div class="d-flex flex-column align-items-center">
                 <img src="{% static 'pos_app/images/coffee_logo.jpg' %}" alt="Brand Logo" width="40" height="40" class="me-2 rounded-circle">
-                <p class="text-white fw-semibold" style="font-size: 20px !important;">Tey Coffee</p>
+                <p class="text-white" style="font-size: 20px !important; font-weight: 500;">Coffe</p>
             </div>
         
             <!-- User info (name + role) -->
             <div class="text-end">
-                <h5 class="m-0 fw-semibold text-white" style="font-size: 25px !important;">{{user.username }}</h5>
-                <p class="m-0 fw-semibold " style="font-size: 20px !important; color: rgb(228, 103, 31)">{{ user.role }}</p>
+                <h5 class="m-0 text-white" style="font-size: 28px !important; font-weight:bold;">{{user.username }}</h5>
+                <p class="m-0 text-start" style="font-size: 20px !important; color: rgb(209, 171, 0); font-weight: 500;">{{ user.role }}</p>
             </div>
         </div>         
         <nav class="flex min-w-[240px] flex-col gap-1 font-sans text-base font-poppins text-white h-full">
@@ -46,7 +46,7 @@
 
             <div role="button"
                  class="flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-white hover:bg-opacity-100 hover:text-sky-500 focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-white active:bg-opacity-100 active:text-sky-500">
-                <a asp-area="" asp-controller="Inventory" asp-action="Index" class="flex items-center w-full ">
+                <a href="{% url 'inventory' %}" class="flex items-center w-full ">
                 <div class="grid mr-4 place-items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-5 h-5">
                         <path fill-rule="evenodd"

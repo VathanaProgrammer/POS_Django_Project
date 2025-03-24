@@ -6,10 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <meta name="Description" content="Enter your description here"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <title>Title</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <title>
+  {% block title %}
+    Pos | Home
+  {% endblock title %}
+    </title>
 </head>
 <style>
     /* Style for the hamburger icon */
@@ -26,7 +36,7 @@
   display: block;               /* Always block */
   opacity: 0;
   transform: translateX(-100%);
-  transition: all 0.4s ease-in-out;
+  transition: all 0.3s ease-in-out;
   position: absolute;
   z-index: 999;
   pointer-events: none;         /* Prevent clicks when hidden */
@@ -39,7 +49,10 @@
   transform: translateX(0);
   pointer-events: auto;         /* Enable interaction when shown */
 }
-
+body, html{
+    font-family: "Roboto", sans-serif;
+    background-color: #D7D7D7 !important;
+}
 </style>
 <body>
   <div class="container-fluid p-0">
@@ -53,9 +66,17 @@
             {% if user.role == 'Cashier' %}
             <!-- Show logo for cashier only -->
             <a class="navbar-brand" href="#">
-                <img src="{% static 'pos_app/images/cofee_logo.jpg' %}" alt="" width="30" height="24" class="d-inline-block align-text-top">
-                <span class="text-white">Tey Coffee</span>
+                <img src="{% static 'pos_app/images/coffee_logo.jpg' %}" alt="" width="30" height="24" class="d-inline-block align-text-top me-2 rounded-circle">
+                <span class="text-white">Coffe No Sleep</span>
             </a>
+            {% endif %}
+
+            {% if not user.role %}
+                        <!-- Show logo for cashier only -->
+                        <a class="navbar-brand" href="#">
+                            <img src="{% static 'pos_app/images/coffee_logo.jpg' %}" alt="" width="30" height="24" class="d-inline-block align-text-top me-2 rounded-circle">
+                            <span class="text-white">Coffe No Sleep</span>
+                        </a>
             {% endif %}
 
             {% if user.role == 'Admin' %}
@@ -69,8 +90,11 @@
 
             <!-- RIGHT SIDE -->
             <div class="d-flex align-items-center position-relative">
+                {% if user.username%}
                 <span class="fw-bold me-2">{{ user.username }}</span>
-
+                {% else %}
+                <span class="fw-bold me-2">Unknow user</span>
+                {% endif %}
                 <!-- Display User's Image if it exists -->
                 {% if user.image %}
                     <img src="{{ user.image.url }}" alt="{{ user.username }}'s image" width="40" height="40" class="rounded-circle me-2">
@@ -90,34 +114,19 @@
             </div>
         </div>
     </nav>
+     
+     {% block content %}
+        
+     {% endblock content %}
+        
   </div>
 
   
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+ 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/js/bootstrap.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="{% static 'pos_app/js/script.js' %}"></script>
-  <script>
-    $(document).ready(function(){
-        let logout_btn = $('#logout');;
-    logout_btn.click(function(e){
-        e.preventDefault();
-        let user_confirm = confirm('Do you really want to logout? ');
-        if(user_confirm){
-            $.ajax({
-                url: "{% url 'logout' %}",
-                type: "GET",
-                success: function(response){
-                    console.log(response.message);
-                    window.location.href = 'login_form/';
-                },
-                error: function(response){
-                    alert('logout was failed !')
-                }
-            })
-        }
-    })
-    })
-  </script>
+  {% include 'pos_app/js.html' %}
 </body>
 </html>
