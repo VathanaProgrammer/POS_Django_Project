@@ -49,9 +49,21 @@
   transform: translateX(0);
   pointer-events: auto;         /* Enable interaction when shown */
 }
+
+
 body, html{
     font-family: "Roboto", sans-serif;
     background-color: #D7D7D7 !important;
+}
+#dark_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background: rgba(0, 0, 0, 0.6); /* Dark background */
+  z-index: 98; /* Behind your form */
+  display: none; /* Hide by default */
 }
 </style>
 <body>
@@ -122,7 +134,8 @@ body, html{
   </div>
 
   
- 
+  <div id="dark_overlay"></div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/js/bootstrap.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

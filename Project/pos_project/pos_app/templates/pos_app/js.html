@@ -1,6 +1,7 @@
 <script>
       $(document).ready(function(){
         let isProduct_update = false;
+        let isCategory_update = false;
         let logout_btn = $('#logout');;
     logout_btn.click(function(e){
         e.preventDefault();
@@ -37,7 +38,7 @@
     $("#btn_submit_category").click(function (e) {
         e.preventDefault();
     let name = $("#category_name").val().trim();
-    console.log($);
+    let category_id = $('#category_id').val();
 
     // Just to make sure user doesn't send empty category
     if (name === '') {
@@ -47,7 +48,8 @@
 
     let csrf_token = $('input[name=csrfmiddlewaretoken]').val();
 
-    showAlert('Confirm', "warning", `Are you sure you want to add "${name}" as your category?`, true)
+    if(!isCategory_update){
+        showAlert('Confirm', "warning", `Are you sure you want to add "${name}" as your category?`, true)
         .then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
@@ -61,6 +63,7 @@
                         if (response.status === 'success') {
                             $("#category_name").val('');
                             showAlert('Success', 'success', response.message || 'Category added successfully!');
+                            isCategory_update = false;
                         } else {
                             showAlert('Warning', 'warning', response.message || 'Failed to add category.');
                         }
@@ -71,12 +74,41 @@
                 });
             }
         });
-
-        $('.category-item').click(function(e){
-            e.preventDefault();
-            let selected = $(this).text();
-            $('#selectedCategory').text(selected);
+    }else{
+        showAlert('Confirm', "warning", `Are you sure you want to update this category's information?`, true)
+        .then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "{% url 'update_category' %}",
+                    type: 'POST',
+                    data: {
+                        'category_name': name,
+                        'category_id': category_id,
+                        'csrfmiddlewaretoken': csrf_token
+                    },
+                    success: function (response) {
+                        if (response.status === 'success') {
+                            $("#category_name").val('');
+                            showAlert('Success', 'success', response.message || 'Category was updated!');
+                            if($('#add_category').hasClass('show_add_pro_form')){
+                                $('#add_category').removeClass('show_add_pro_form');
+                            }
+                            $('#category').toggleClass('show_add_pro_form');
+                            isCategory_update = false;
+                            $('#add_new_category').text('Add New Category');
+                            $('#btn_submit_category').text('Add');
+                            console.log('isCategory update '+isCategory_update)
+                        } else {
+                            showAlert('Warning', 'warning', response.message || 'Failed to update category.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        showAlert('Error', 'error', 'Something went wrong: ' + error);
+                    }
+                });
+            }
         });
+    }
     })
         // When a category is selected from the dropdown
         $('#dropdownMenu_in_add_proForm li').click(function(e) {
@@ -101,7 +133,7 @@
         const image = $("#image")[0].files[0]; // Get the selected file (first file)
 
         // Get the selected category ID
-        let categoryId = document.getElementById("selectedCategory").getAttribute("data-id");
+        let categoryId = document.getElementById("selectedCategory_normal_normal").getAttribute("data-category_id");
         
         // Check if category is selected
         if (!categoryId) {
@@ -192,27 +224,345 @@
     });
 
     $(document).on('click', '.btn-edit', function(){
-        const product_id = $(this).data('product_id');
-        const tr = $(this).closest('tr');
-        const product_name = tr.find('td:eq(0)').text();   // index 0 = product name
-        const sku = tr.find('td:eq(1)').text();
-        const qty = tr.find('td:eq(2)').text();
-        const price = tr.find('td:eq(3)').text();  // index 3 = price
-        const category_id = $(this).data('category_id');
-        const category_name = $(this).data('category_name');
-        // showAlert('Test', 'success', category_id)
-        $('#add_product').toggleClass('show_add_pro_form');
-        $('#add_product_header').text('Update Product');
-        $('#selectedCategory').text(category_name);
-        $('#pro_name').val(product_name);
-        $('#SKU').val(sku);
-        $("#qty").val(qty);
-        $('#price').val(price);
-        $('#btn_add_new_pro').text('Update');
-        isProduct_update = true;
-        $('#product_id').val(product_id);
-    })
+    const product_id = $(this).data('product_id');
+    const tr = $(this).closest('tr');
+    const product_name = tr.find('td:eq(0)').text();
+    const sku = tr.find('td:eq(1)').text();
+    const qty = tr.find('td:eq(2)').text();
+    const price = tr.find('td:eq(3)').text();
+    const category_id = $(this).data('category_id');
+    const category_name = $(this).data('category_name');
+
+    // ✅ Get existing image URL from data attribute
+    const image_url = $(this).data('image');  // You must pass this in HTML
+
+    $('#add_product').addClass('show_add_pro_form');
+    $('#add_product_header').text('Update Product');
+    $('#selectedCategory').text(category_name);
+    $('#pro_name').val(product_name);
+    $('#SKU').val(sku);
+    $('#qty').val(qty);
+    $('#price').val(price);
+    $('#btn_add_new_pro').text('Update');
+    isProduct_update = true;
+    $('#product_id').val(product_id);
+
+    // ✅ Show the image if available
+    if (image_url && image_url !== '') {
+        $('#preview_image').attr('src', image_url).show();
+        $('#empty_text').hide(); // hide "No image selected"
+    } else {
+        $('#preview_image').hide().attr('src', '');
+        $('#empty_text').show(); // show fallback text
+    }
+});
+
     console.log(isProduct_update)
+
+    $('#image').on('change', function () {
+            const file = this.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#preview_image').attr('src', e.target.result).show();
+                    $('#empty_text').hide();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                $('#preview_image').hide().attr('src', '');
+                $('#empty_text').show();
+            }
+        });
+    
+    $(document).on('click', '.btn-delete', function(){
+        const btn = $(this);
+        const product_id = $(this).data('product_id');
+        const product_name = $(this).data('product_name');
+        showAlert('Confirm', 'warning', 'Are you sure you want to delete product name: ' +product_name+" ?", true)
+        .then((result) =>{
+            if(result.isConfirmed){
+                $.ajax({
+                    url: "{% url 'delete_product'%}",
+                    type: "POST",
+                    data: {product_id : product_id},
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}' // CSRF token for Django
+                    },
+                    success: function(response){
+                        if(response.status == 'success'){
+                            showAlert('Success', 'success', 'Product name: ' + product_name+ ' was deleted.')
+                            // Optional: remove the row from table
+                            btn.closest('tr').remove();
+                        }
+                        else{
+                            showAlert('Error', 'error', response.message)
+                        }
+                    },
+                    error: function(response){
+                        showAlert('Error', 'error', 'An error occurred while adding the product.' + response.message);
+                    }
+                })
+            }else{
+                return;
+            }
+        })
+    })
+
+    $(document).on('click', '.btn-edit-category', function () {
+    const category_id = $(this).data('category_id');
+    const category_name = $(this).closest('tr').find('td:eq(0)').text().trim();
+    
+    console.log('Category ID:', category_id);
+    console.log('Category Name:', category_name);
+
+    // Toggle the visibility of the category form
+    $('#add_category').toggleClass('show_add_pro_form');
+    
+    // Check if the class is added properly
+    console.log($('#add_category').hasClass('show_add_pro_form'));
+    const category_form = $('#category');
+    if(category_form.hasClass('show_add_pro_form')){
+        category_form.removeClass('show_add_pro_form')
+    }
+    $('#add_new_category').text('Update Category');
+    $('#category_name').val(category_name);
+    $('#btn_submit_category').text('Update');
+    $('#category_id').val(category_id);
+    isCategory_update = true;
+});
+
+//-------
+const sidebar = $('#sidebar');
+    const humburger = $('#humburger');
+
+    // Click hamburger to open sidebar
+    humburger.on('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation(); // Stop bubbling to document click
+        sidebar.addClass('show');
+    });
+
+    // Prevent clicks inside sidebar from closing it
+    sidebar.on('click', function (e) {
+        e.stopPropagation();
+    });
+
+    // Click outside sidebar closes it
+    $(document).on('click', function () {
+        if (sidebar.hasClass('show')) {
+            sidebar.removeClass('show');
+        }
+    });
+    function showAlert(title, icon, text, showCancel = false, confirmText = "OK", cancelText = "Cancel") {
+        return Swal.fire({
+            title: title,
+            icon: icon,
+            text: text,
+            showCancelButton: showCancel,
+            confirmButtonText: confirmText,
+            cancelButtonText: cancelText
+        });
+    }
+    $('#dropdownBtn').click(function (e) {
+        e.stopPropagation(); // prevent bubbling to document
+        $('#dropdownMenu').toggleClass('show');
+        $('#dropdownIcon').toggleClass('rotate');
+    });
+
+    // Close dropdown if clicked outside
+    $(document).click(function (e) {
+        if (!$(e.target).closest('.custom-dropdown').length) {
+            $('#dropdownMenu').removeClass('show');
+            $('#dropdownIcon').removeClass('rotate');
+        }
+    });
+    $('#new_pro_or_cate').click(function (e) {
+        e.stopPropagation(); // prevent bubbling to document
+        $('#dropdownmenu_new').toggleClass('show');
+        $('#dropdownIcon_new').toggleClass('rotate');
+    });
+
+        // Close dropdown if clicked outside
+        $(document).click(function (e) {
+            if (!$(e.target).closest('.custom-dropdown').length) {
+                $('#dropdownmenu_new').removeClass('show');
+                $('#dropdownIcon_new').removeClass('rotate');
+            }
+        });
+
+$('#dropdownBtn_proform').click(function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $('#dropdownMenu_proform').toggleClass('show');
+    $('#dropdownIcon_fromform').toggleClass('rotate');
+    console.log("Current display:", $('#dropdownMenu_proform').css('display'));
+    // $('#dropdownMenu_in_add_proForm').css('z-index', '9999');
+
+});
+
+$(document).click(function (e) {
+    console.log("Document clicked");
+    if (!$(e.target).closest('.custom-dropdown').length) {
+        console.log("Closing dropdown");
+        $('#dropdownMenu_in_add_proFormm').removeClass('show_');
+        $('#dropdownIcon_in_add_proForm').removeClass('rotate');
+    }
+});
+
+
+
+// Product form open
+$('#new_pro_click').click(function(e) {
+    e.preventDefault();
+    $('#add_product').toggleClass('show_add_pro_form');
+    if ($('#add_product').hasClass('show_add_pro_form')) {
+        $('#dark_overlay').fadeIn();
+    } else {
+        $('#dark_overlay').fadeOut();
+    }
+});
+
+// Product form cancel
+$('#add_cancel').on('click', function () {
+    $('#add_product').removeClass('show_add_pro_form');
+    
+    setTimeout(() => {
+        $('#add_product').css('pointer-events', 'none'); // optional fallback
+    }, 4400); // Match your CSS transition time
+});
+
+
+// Category form open
+$('#new_cate_click').on('click', function(e) {
+    e.preventDefault();
+    $('#add_category').toggleClass('show_add_pro_form');
+    if ($('#add_category').hasClass('show_add_pro_form')) {
+        $('#dark_overlay').fadeIn();
+    } else {
+        $('#dark_overlay').fadeOut();
+    }
+});
+
+// Category form cancel
+$('#add_cate_cancel').on('click', function() {
+    $('#add_category').removeClass('show_add_pro_form');
+    $('#dark_overlay').fadeOut();
+});
+                
+                // Prevent form submission when clicking on the dropdown button
+$('#dropdownBtn_in_add_proForm').click(function(event) {
+    event.preventDefault();  // Prevent form submission
+    $('#dropdownMenu_in_add_proForm').toggle();  // Toggle the dropdown menu visibility
+});
+
+$("#categoriess").on('click', function() {
+    $('#category').toggleClass('show_add_pro_form');
+    
+    if ($('#category').hasClass('show_add_pro_form')) {
+        $('#dark_overlay').fadeIn(); // Show dark background
+    } else {
+        $('#dark_overlay').fadeOut(); // Hide it
+    }
+});
+
+$('#add_cate_close').click(function(){
+    if ($('#category').hasClass('show_add_pro_form')) {
+        $('#category').removeClass('show_add_pro_form');
+        $('#dark_overlay').fadeOut(); // Hide background
+        if(isCategory_update){
+            isCategory_update = false;
+        }
+    }
+});
+//-------
+$(document).on('click', '.btn-delete-category', function(){
+    const btn_cate_delete = $(this)
+    const category_id = $(this).data('category_id');
+    const category_name = $(this).closest('tr').find('td:eq(0)').text().trim();
+    console.log(category_id, category_name)
+    showAlert('Confirm', 'warning', `Are you sure you want to delete this ${category_name} category?`, true)
+    .then((result) =>{
+        if(result.isConfirmed){
+            $.ajax({
+                url: "{% url 'delete_category'%}",
+                type: 'POST',
+                data: {
+                    category_id : category_id
+                },
+                headers: {
+                        'X-CSRFToken': '{{ csrf_token }}' // CSRF token for Django
+                },
+                success:function(response){
+                    if(response.status == 'success'){
+                        showAlert('Success', 'success', response.message || `Category ${category_name} was deleted`)
+                        btn_cate_delete.closest('tr').remove()
+                    }else{
+                        showAlert('Error', 'error', response.message || 'something went wrong')
+                    }
+                },
+                error: function(response){
+                    showAlert('Error', 'error', response.message || 'Error whlie delete category')
+                }
+            })
+        }else{
+            return;
+        }
+    })
+})
+$(document).on('click', '.category-item-in-pro-from', function(e) {
+    e.preventDefault();
+    
+    // Get the selected category text and ID
+    let selectedText = $(this).text();
+    let selectedId = $(this).data('id');  // Ensure the data-id attribute is passed correctly to each <a>
+    
+    // Update the selected category span
+    $('#selectedCategory_normal_normal').text(selectedText);
+    $('#selectedCategory_normal_normal').attr('data-category_id', selectedId);  // Update data-category_id
+    
+    // Close the dropdown after selection
+    $('#dropdownMenu_proform').removeClass('show');
+    $('#dropdownIcon_fromform').removeClass('rotate');
+
+    console.log(selectedText, selectedId)
+});
+
+$(document).on('click', '.category-item-normal', function(e) {
+    e.preventDefault();
+
+    // Get the current selected category's text and id from the span
+    let defaultCategory = $("#selectedCategory_normal").text().trim();
+    let defaultCategory_id = $('#selectedCategory_normal').attr("data-category_id_normal");
+
+    // Get the selected category text and ID from the clicked item
+    let selectedText = $(this).text().trim();
+    let selectedId = $(this).data('id');  // Ensure the data-id attribute is passed correctly to each <a>
+
+    // If the selected category is not the same as the default category
+    if (selectedId !== defaultCategory_id) {
+        // Update the selected category span with the new category
+        $('#selectedCategory_normal').text(selectedText);
+        $('#selectedCategory_normal').attr('data-category_id_normal', selectedId);  // Set the selected category ID
+    }
+
+    // Close the dropdown after selection
+    $('#dropdownMenu').removeClass('show');
+    $('#dropdownIcon').removeClass('rotate');
+
+    // Log current state for debugging
+    console.log('default :' + defaultCategory + " id " + defaultCategory_id);
+    console.log("after click:" + selectedText + " id " + selectedId);
+
+    // Ensure the dropdown items reset to default when clicked again (reset only if different category)
+    if (selectedId !== defaultCategory_id) {
+        // Reset the clicked item to the default category name and ID
+        $(this).text(defaultCategory);
+        $(this).attr("data-id", defaultCategory_id); // Reset to default values
+    }
+});
+
+
 });
 
     

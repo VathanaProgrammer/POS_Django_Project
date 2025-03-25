@@ -76,8 +76,18 @@ def inventory_view(request):
         print('Product is empty.')
     else:
         for product in products:
-            print(f"Product ID: {product.id}, Product Name: {product.name}, Category: {product.category}, status: {product.status}")
-    return render(request, 'pos_app/inventory.html', {'categories': categories, 'products': products})
+            print(f"Product ID: {product.id}, Product Name: {product.name}, Category: {product.category}, quanity: {product.quantity_in_stock} status: {product.status}")
+    low_stock_quantity = Product.objects.filter(quantity_in_stock__lte = 5)
+    if not low_stock_quantity.exists():
+        print('No product has low quantity')
+    else:
+        for low_stock in low_stock_quantity:
+            print(f"low stock product : {low_stock.name}")
+    return render(request, 'pos_app/inventory.html', {
+        'categories': categories,
+        'products': products,
+        'low_stock_quantity' : low_stock_quantity
+        })
 
 
 def register_category(request):
@@ -107,6 +117,7 @@ def add_product(request):
         category = Category.objects.get(id=category_id)
         if Product.objects.filter(name =name):
             return JsonResponse({'status': "error", "message": f"{name} is already exits please choose different one."})
+            print(f"add product name: {name}, category: {category}")
         else:
             product = Product.objects.create(name=name, image=image, sku=sku, category=category, quantity_in_stock=quantity_in_stock, price=price)
             return JsonResponse({"status": "success", "message": "Product was added."})
@@ -157,3 +168,40 @@ def update_product(request):
         return JsonResponse({'status': 'success', 'message': 'Product updated successfully.'})
     
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})
+def delete_product(request):
+    if request.method == "POST":
+        try:
+            product_id = request.POST.get('product_id')
+            if Product.objects.filter(id = product_id):
+                product = Product.objects.get(id = product_id)
+                product.delete()
+                return JsonResponse({'status': 'success'})
+        except Product.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message' : 'Product not found'})
+    else:
+        return JsonResponse({'messge': 'Invalid method request'})
+
+def update_category(request):
+    if request.method == "POST":
+        category_id = request.POST.get('category_id')
+        category_name = request.POST.get('category_name')
+        if Category.objects.filter(id = category_id):
+            category = Category.objects.get(id = category_id)
+            category.name = category_name
+            category.save()
+            return JsonResponse({'status': 'success', 'message': 'Category was updated.'})
+        else:
+            return JsonResponse({'status': 'error', 'message' : 'category not found!'})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+def delete_category(request):
+    if request.method == "POST":
+        category_id = request.POST.get('category_id')
+        if Category.objects.filter(id = category_id):
+            category = Category.objects.get(id = category_id)
+            category.delete()
+            return JsonResponse({'status': 'success', 'message': 'Category was deleted.'})
+        else:
+            return JsonResponse({'status': 'error', 'message':'category not found'})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Invalid method request'})

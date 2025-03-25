@@ -24,6 +24,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to='products/', null=True, blank=True) 
     status = models.CharField(max_length=50, choices=[('available', 'Available'), ('out_of_stock', 'Out of Stock')], default="available")
+    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def is_low_stock(self):

@@ -10,5 +10,8 @@ urlpatterns = [
     path('inventory/', views.inventory_view, name='inventory'),
     path('register-category', views.register_category, name="register_category"),
     path('add-product/', views.add_product, name='add_product'),
-    path('update_product/', views.update_product, name="update_product")
+    path('update_product/', views.update_product, name="update_product"),
+    path('delete_product/', views.delete_product, name = 'delete_product'),
+    path('update_category/', views.update_category, name = "update_category"),
+    path('delete_category/', views.delete_category, name='delete_category')
 ]
