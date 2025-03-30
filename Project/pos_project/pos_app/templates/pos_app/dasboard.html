@@ -1,0 +1,106 @@
+{% extends "pos_app/base.html" %}
+
+{% block title %}
+    POS | Dasboard
+{% endblock title %}
+
+{% block content %}
+<style>
+    .box_das {
+        width: 337px;
+        height: 187px;
+        background-color: #1A2D42;
+        display: flex; /* Ensures flexbox layout */
+        justify-content: center; /* Centers content horizontally */
+        align-items: center; /* Centers content vertically */
+        flex-direction: column; /* Stacks text vertically */
+        text-align: center; /* Centers the text horizontally inside each box */
+        border-radius: 5px;
+        
+    }
+        /* Styling for the low stock section */
+        .low_stock_section {
+        flex: 1; /* Ensures that sections will take up available space */
+        margin: 10px;
+        padding: 20px;
+        background-color: white;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        overflow-y: auto; /* Scrolls when content overflows */
+    }
+</style>
+
+<div class="container h-100 w-100 p-3">
+    <div class="d-flex gap-2 justify-content-around">
+        <div class="box_das p-3">
+            <h4 class="text-white fs-5 fw-bold pb-3">Total Sale Today</h4>
+            <h4 class="text-white fs-4 fw-bold pt-3" id="total_sale_today"></h4>
+        </div>
+        <div class="box_das p-3">
+            <h4 class="text-white fs-5 fw-bold pb-3">Total Orders</h4>
+            <h4 class="text-white fs-4 fw-bold pt-3" id="total_orders"></h4>
+        </div>
+        <div class="box_das p-3">
+            <h4 class="text-white fs-5 fw-bold pb-3">Total Customers</h4>
+            <h4 class="text-white fs-4 fw-bold pt-3" id="total_customers"></h4>
+        </div>
+        <div class="box_das p-3">
+            <h4 class="text-white fs-5 fw-bold pb-3">Product In Stock</h4>
+            <h4 class="text-white fs-4 fw-bold pt-3" id="total_product"></h4>
+        </div>
+    </div>
+</div>
+<div class="d-flex container-fluid p-3 w-100">
+    <section class=" d-flex flex-column m-0 ms-2 p-4 w-50 shadow-new bg-white" style="height: 100% !important; ">
+        <h1 class="text-start fs-3 fw-bold "> Recent Transactions</h1>
+        <div class="low_stock_table_container mt-4 pt-2" style="height: 487px !important; overflow-y: auto !important">
+            <table class="table table-hover position-relative"  >
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Order ID</th>
+                        <th>Total</th>
+                        <th>Cashier</th>
+                    </tr>
+                </thead>
+                <tbody class="overflow-auto" id="recent_transaction">
+                    
+                </tbody>
+            </table>
+        </div>
+    </section>
+<section class=" d-flex flex-column m-0 ms-2 p-4 shadow-new bg-white w-25" style="height: 100% !important; ">
+    <h1 class="text-start fs-3 fw-bold ">Top Selling Product</h1>
+    <div class="low_stock_table_container mt-4 pt-2" style="height: 487px !important; overflow-y: auto !important">
+        <table class="table table-hover position-relative">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity sold</th>
+                </tr>
+            </thead>
+            <tbody class="overflow-auto" id="top_selling_product">
+
+            </tbody>
+        </table>
+    </div>
+</section>
+<section class=" d-flex flex-column m-0 ms-2 p-4 shadow-new bg-white w-25" style="height: 100% !important; ">
+    <h1 class="text-start fs-3 fw-bold ">Low Stock</h1>
+    <div class="mt-4 pt-2" style="height: 487px !important; overflow-y: auto !important">
+        <table class="table table-hover position-relative"  >
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity Left</th>
+                </tr>
+            </thead>
+            <tbody class="overflow-auto" id="low_stock_in_das">
+              
+            </tbody>
+        </table>
+    </div>
+</section>
+</div>
+
+{% endblock content %}
+       

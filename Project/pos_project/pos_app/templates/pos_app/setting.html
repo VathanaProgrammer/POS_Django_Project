@@ -1,0 +1,39 @@
+{% extends "pos_app/base.html" %}
+
+{% block title %}
+    POS | Setting
+{% endblock title %}
+
+{% block content %}
+    <div class="container p-5">
+        <div class="container px-3 p-3 shadow-new bg-white" style="min-height: 600px !important;">
+            <header>
+                <h1 class="fs-1 fw-bold">Setting</h1>
+            </header>
+            <div class="option my-1" id="nextto_gen">
+                <button class="py-2 px-4 btn-custom custom_two_btn" id="setting_general_btn">General</button>
+                <button class="py-2 px-4 btn-custom " id="setting_cashier_btn">Cashier</button>
+            </div>
+            <div id="settings-content">
+                {% include 'pos_app/setting_general.html' %}
+            </div>
+            <style>
+                .btn-custom
+                {
+                    border-radius: 20px !important;
+                    border: 1.5px solid blue !important;
+                    font-size: 15px ;
+                    font-weight: 600;
+                    transition: all 0.3s ease-in-out !important;
+                }
+                .custom_two_btn{
+                    border: none !important;
+                    background-color: #007C40;
+                    color: white !important;
+                }
+            </style>
+           
+        </div>
+    </div>
+{% endblock content %}
+    

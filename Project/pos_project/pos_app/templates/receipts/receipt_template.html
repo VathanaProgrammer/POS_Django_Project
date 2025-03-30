@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="Description" content="Enter your description here"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<title>Title</title>
+</head>
+<style>
+        #fff{
+            min-height: 650px; min-width: 480px;background-color: rgb(160, 160, 160) !important;
+        }
+        .dashed-line {
+    width: 100% !important;                 /* Full width */
+    height: 0;                   /* Height set to 0, as we're using borders */
+    border: 1px dashed black !important; /* Dashed top border */
+}
+</style>
+<body>
+    <div id="fff" class="shadow-new p-4 position-absolute">
+        <header class="w-100 pt-5 px-3">
+            <h2 class="fs-2 fw-bold text-center">{{name}}</h2>
+        </header>
+        <p class="text-muted text-center px-1" id="com_addr_receipt">{{address}}</p>
+        <p class="text-muted text-center"> Phone number: (+855) 77 433 3333</p>
+        <div class="date_and_cashier px-3 mt-5 d-flex justify-content-between">
+            <p class="text-muted" id="">Date: <span>{{ date }}</span></p>
+            <p class="text-muted">Invoice No: <span>{{invoice_no}}</span></p>
+        </div>
+        <div class="date_and_cashier px-3 mt-0 d-flex justify-content-between">
+            <p class="text-muted" id="">Open By: <span>{{ cashier }}</span></p>
+            <p class="text-muted" id="">Customer's Name:<span>{{ customer }}</span><i class="fa-solid fa-user-pen ms-1 fs-4 text-warning"></i></p>
+        </div>
+        <div class="dashed-line mt-2" ></div>
+        <div id="receipt_header" class="date_and_cashier px-3 mt-2 d-flex justify-content-between">
+            <p class="text-muted">No</p>
+            <p class="text-muted">Product Name</p>
+            <p class="text-muted">QTY</p>
+            <p class="text-muted">Amount</p>
+        </div>
+        <div class="receipt_body">
+            {% for item in orderItems %}
+            <div class="before_receipt px-3 mt-0 d-flex justify-content-between">
+                <p class="text-muted w-100 text-start">{{ forloop.counter }}</p>
+                <p class="text-muted w-100 text-start">{{ item.name }}</p>
+                <p class="text-muted w-100 text-center ps-2">x{{ item.quantity }}</p>
+                <p class="text-muted w-100 text-end">${{ item.price }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="dashed-line mt-2" ></div>
+        <div class="d-flex mt-2 justify-content-between">
+            <p class="fs-4 fw-semibold">Payment:</p>
+            <p class="fs-4 fw-semibold" id="">{{paymentMethod}}</p>
+        </div>
+        <div class="d-flex mt-0 justify-content-between">
+            <p class="fs-4 fw-semibold">Subtotal:</p>
+            <p class="fs-4 fw-semibold" id="">${{ subtotal }}</p>
+        </div>
+        <div class="d-flex mt-0 justify-content-between">
+            <p class="fs-4 fw-semibold">Discount:</p>
+            <p class="fs-4 fw-se" id="">${{ discount }}</p>
+        </div>
+        <div class="d-flex mt-0 justify-content-between">
+            <p class="fs-4 fw-bold">Grand Total:</p>
+            <p class="fs-4 fw-normal" id="">${{ totalAmount }}</p>
+        </div>
+        <div class="w-100 d-flex justify-content-center">
+            <p class="text-muted text-center">Thank for your plature</p>
+        </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</body>
+</html>

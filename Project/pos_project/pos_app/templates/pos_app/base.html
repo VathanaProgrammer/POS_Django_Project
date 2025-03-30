@@ -14,7 +14,7 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  
+  <link rel="stylesheet" type="text/css" href="{% static 'pos_app/css/style.css' %}">
   <title>
   {% block title %}
     Pos | Home
@@ -63,11 +63,26 @@ body, html{
   width: 100vw;
   background: rgba(0, 0, 0, 0.6); /* Dark background */
   z-index: 98; /* Behind your form */
-  display: none; /* Hide by default */
+  display: none ; /* Hide by default */
+}
+#dark_overlayy {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background: rgba(0, 0, 0, 0.6); /* Dark background */
+  z-index: 98; /* Behind your form */
+  display: none ; /* Hide by default */
+}
+.abc{
+  display: block !important;
 }
 </style>
 <body>
-  <div class="container-fluid p-0">
+  <div class="container-fluid p-0 ">
+    <div id="dark_overlay" class="dark_overlay" ></div>
+    <div id="dark_overlayy" class="dark_overlayy" ></div>
     {% if user.role == 'Admin' %}
       {% include 'pos_app/sidebar.html' %}
     {% endif %}
@@ -78,32 +93,38 @@ body, html{
             {% if user.role == 'Cashier' %}
             <!-- Show logo for cashier only -->
             <a class="navbar-brand" href="#">
-                <img src="{% static 'pos_app/images/coffee_logo.jpg' %}" alt="" width="30" height="24" class="d-inline-block align-text-top me-2 rounded-circle">
-                <span class="text-white">Coffe No Sleep</span>
+                <img src="" alt="" width="30" height="24" class="company_logo d-inline-block align-text-top me-2 rounded-circle">
+                <span class="text-white company_name"></span>
             </a>
             {% endif %}
 
             {% if not user.role %}
                         <!-- Show logo for cashier only -->
                         <a class="navbar-brand" href="#">
-                            <img src="{% static 'pos_app/images/coffee_logo.jpg' %}" alt="" width="30" height="24" class="d-inline-block align-text-top me-2 rounded-circle">
-                            <span class="text-white">Coffe No Sleep</span>
+                            <img src="" alt="" width="30" height="24" class="company_logo d-inline-block align-text-top me-2 rounded-circle">
+                            <span class="text-white company_name" ></span>
                         </a>
             {% endif %}
 
             {% if user.role == 'Admin' %}
             <!-- Show full admin control instead of logo (optional) -->
-            <a class="navbar-brand" id="humburger" href="#">
-                <span class="humburger"></span>
-                <span class="humburger"></span>
-                <span class="humburger"></span>
-            </a>
+                        <div class="d-flex">
+                          <a class="navbar-brand" id="humburger" href="#">
+                            <span class="humburger"></span>
+                            <span class="humburger"></span>
+                            <span class="humburger"></span>
+                        </a>
+                        <div class="logo d-flex align-items-center">
+                          <img src="" width="40" height="40" alt="" class="company_logo rounded-circle">
+                          <p class="ps-2 company_name"></p>
+                        </div>
+                        </div>
             {% endif %}
 
             <!-- RIGHT SIDE -->
             <div class="d-flex align-items-center position-relative">
                 {% if user.username%}
-                <span class="fw-bold me-2">{{ user.username }}</span>
+                <span class="fw-bold me-2" id="emp_name">{{ user.username }}</span>
                 {% else %}
                 <span class="fw-bold me-2">Unknow user</span>
                 {% endif %}
@@ -119,7 +140,7 @@ body, html{
                         <span class="visually-hidden">User Options</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">Profile</a></li>
+                        <li><a class="dropdown-item" href="#" id="profile">Profile</a></li>
                         <li><a class="dropdown-item" href="#" id="logout">Logout</a></li>
                     </ul>
                 </div>
@@ -128,13 +149,96 @@ body, html{
     </nav>
      
      {% block content %}
-        
-     {% endblock content %}
-        
-  </div>
 
+     {% endblock content %}
+    
+<div class="notif_container w-50 shadow-new  h-50 bg-white shadow-new" style="min-height: 300px !important; overflow-y: auto !important; width: 700px !important;"  >
+  <header class="btn-new w-100 p-3 mb-2 position-sticky top-0 "><h2 class=" text-white fs-2 fw-bold text-decoration-underline mb-2">Notifications</h2></header>
   
-  <div id="dark_overlay"></div>
+</div>
+     <div class="profile_container h-50 shadow-new" style="width: 370px ;">
+      <header class="d-flex justify-content-between align-items-center p-1 px-2" style="background: #007C40 ;">
+        <p class="fs-5 fw-bold text-white">User</p>
+        <i class="fa-solid fa-xmark"></i>
+      </header>
+      <div class="image d-flex justify-content-center">
+          <img src="{{ user.image.url }}" alt="" class="rounded-circle my-3" style="width: 120px; height: 120px ;">
+      </div>
+      <div class="name px-4 pt-3">
+          <p class="fs-5 fw-bold ">User name: {{ user.username }}</p>
+          <p class="fs-5 fw-bold">Role: {{ user.role }}</p>
+      </div>
+   </div>
+  </div>
+  <div class="user_info_container w-50 shadow-new p-3 d-flex flex-column">
+   <div class="d-flex w-100">
+    <form action="" method="post" class="row p-3 w-50" >
+      {% csrf_token %}
+      <h1 class="text-start text-black fs-3 fw-bold" id="name_info">'s infomation</h1>
+      <div class="col-12">
+        <label for="" class="form-label">Name</label>
+        <input type="text" class="form-control" id="name">
+      </div>
+      <div class="col-12">
+        <label for="" class="form-label">Role</label>
+        <select class="form-select" aria-label="Default select example" id="role"> 
+          <option value="Cashier">Cashier</option>
+          <option value="Admin">Admin</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <label for="" class="form-label">Image</label>
+        <input type="file" class="form-control" id="image">
+      </div>
+      <input type="hidden" id="id">
+    </form>
+    <div class="image w-50 d-flex justify-content-center align-items-center">
+      <img src="" alt="" width="200" height="300" > 
+    </div>
+
+   </div>
+   <section class="mt-auto d-flex justify-content-end">
+    <button class="btn btn-danger py-2 px-4 me-2 shadow-new delete_user" id="">Delete</button>
+    <button class="btn btn-success py-2 px-4 btn-new shadow-new save_user" id="">Save</button>
+   </section>
+  </div>
+  <div class="add_user_coontainer w-50 shadow-new p-4 d-flex flex-column"  >
+   <div class=" d-flex">
+    <form action="" method="post" class="row  w-50" >
+      {% csrf_token %}
+      <header>
+        <h1 class="fs-3 fw-bold">Add New User</h1>
+      </header>
+      <div class="col-12">
+        <label for="" class="form-label fs-5 fw-bold">Name</label>
+        <input type="text" class="form-control mb-1" id="name_in_form" placeholder="Enter name">
+      </div>
+      <div class="col-12">
+        <label for="" class="form-label fs-5 fw-bold">Password</label>
+        <input type="password" id="pw" class="form-control mb-1" placeholder="Enter password">
+      </div>
+      <div class="col-12">
+        <label for="" class="form-label fs-5 fw-bold">Role</label>
+        <select  id="role_info_add" name="" class="form-select mb-1">
+          <option value="Cashier">Cashier</option>
+          <option value="Admin">Admin</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <label for="" class="form-label fs-5 fw-bold">Image</label>
+        <input type="file" class="form-control mb-1" id="image_input">
+      </div>
+
+    </form>
+    <div class="image w-50 d-flex justify-content-center align-items-center">
+      <img src="" alt="" id="image_preview" class="d-none rounded-3" style="width: 185px !important; height: 220px !important;">
+      <span id="no_image_text" style="display: block;">No image selected yet.</span>
+    </div>
+   </div>
+   <div class="d-flex justify-content-end mt-auto">
+    <button class="btn btn-new shadow-new py-2 px-4 text-white fs-5 fw-semibold" id="add_in_form">Add</button>
+</div>
+
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/js/bootstrap.min.js"></script>

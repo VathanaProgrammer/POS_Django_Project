@@ -14,7 +14,7 @@
                 type: "GET",
                 success: function(response){
                     console.log(response.message);
-                    window.location.href = '{% url "login_form" %}';
+                    window.location.href = '/';
                 },
                 error: function(response){
                     alert('logout was failed !')
@@ -63,6 +63,9 @@
                         if (response.status === 'success') {
                             $("#category_name").val('');
                             showAlert('Success', 'success', response.message || 'Category added successfully!');
+                            setTimeout(() => {
+                                location.reload()
+                            }, 1000);
                             isCategory_update = false;
                         } else {
                             showAlert('Warning', 'warning', response.message || 'Failed to add category.');
@@ -123,23 +126,56 @@
         // Optionally, toggle the dropdown (close it after selection)
         $('#dropdownMenu_in_add_proForm').toggleClass('show');
     });
+    function clear_add_pro(){
+        $("#pro_name").val('')
+        $("#SKU").val('')
+        $("#price").val("")
+        $("#qty").val("")
+        $("#discount").val("")
+        $("#image").val('');  // Clear the image input field
+        $("#preview_image").attr('src', '').hide();  // Clear the image preview and hide it
+        $("#empty_text").show()
+    }
     $('#btn_add_new_pro').click(function(e) {
         e.preventDefault();
-        const product_id = $("#product_id").val();
-        const product_name = $("#pro_name").val();
-        const SKU = $('#SKU').val();
-        const price = $('#price').val();
-        const qty = $("#qty").val();
+        const product_id = $("#product_id").val().trim();
+        const product_name = $("#pro_name").val().trim();
+        const SKU = $('#SKU').val().trim();
+        const price = $('#price').val().trim();
+        const discount = $('#discount').val().trim();
+        const qty = $("#qty").val().trim();
         const image = $("#image")[0].files[0]; // Get the selected file (first file)
+        
 
         // Get the selected category ID
-        let categoryId = document.getElementById("selectedCategory_normal_normal").getAttribute("data-category_id");
+        let category_name = $('#selectedCategory_normal_normal').text().trim();
         
         // Check if category is selected
-        if (!categoryId) {
+        if (!category_name) {
             showAlert('Error', 'error', 'Please select a category.');
-            console.log("Sending Form Data:", product_name, SKU, price, qty, categoryId, image);
+            console.log("Sending Form Data:", product_name, SKU, price, qty, category_name, image);
             return;
+        }
+        if(qty <= 0){
+            showAlert('Error', 'error', 'Quanity can not less than zero!')
+            return
+        }
+        if(isNaN(discount)){
+            showAlert('Error', 'error', 'discount must be number!')
+            return
+        }
+        if(price <= discount){
+            showAlert('Error', 'error', 'Price can not less than or equal to discount!');
+            return
+        }
+      
+        if(isNaN(qty)){
+            showAlert('Error', 'error', 'Quantity must be number!')
+            return
+        }
+        if(isNaN(price)){
+            showAlert('Error', 'error', 'price must be number!')
+            return
         }
 
         if(!isProduct_update){
@@ -152,8 +188,9 @@
                 formData.append('product_name', product_name);
                 formData.append('SKU', SKU);
                 formData.append('price', price);
+                formData.append('discount', discount);
                 formData.append('qty', qty);
-                formData.append('category', categoryId); // Send category ID
+                formData.append('category', category_name); // Send category ID
                 formData.append('image', image); // Append the image file
 
                 // AJAX request to submit the form data
@@ -171,6 +208,8 @@
                             showAlert('Warning', 'warning', response.message);
                         } else {
                             showAlert('Success', 'success', response.message);
+                            clear_add_pro()
+                            alert('sfsf')
                         }
                     },
                     error: function(xhr, status, error) {
@@ -189,8 +228,9 @@
                 formData.append('product_name', product_name);
                 formData.append('SKU', SKU);
                 formData.append('price', price);
+                formData.append('discount', discount);
                 formData.append('qty', qty);
-                formData.append('category', categoryId); // Send category ID
+                formData.append('category', category_name); // Send category ID
                 formData.append('image', image); // Append the image file
 
                 // AJAX request to submit the form data
@@ -205,9 +245,12 @@
                     },
                     success: function(response) {
                         if (response.status == "error") {
-                            showAlert('Warning', 'warning', response.message);
+                            setTimeout(() => {
+                                showAlert('Warning', 'warning', response.message);
+                            }, 1000);
                         } else {
                             showAlert('Success', 'success', response.message);
+                            clear_add_pro()
                             isProduct_update = false;
                             console.log('While update product: '+ isProduct_update)
                         }
@@ -230,13 +273,13 @@
     const sku = tr.find('td:eq(1)').text();
     const qty = tr.find('td:eq(2)').text();
     const price = tr.find('td:eq(3)').text();
+    const discount = tr.find("td:eq(4)").text();
     const category_id = $(this).data('category_id');
     const category_name = $(this).data('category_name');
-
     // ✅ Get existing image URL from data attribute
     const image_url = $(this).data('image');  // You must pass this in HTML
 
-    $('#add_product').addClass('show_add_pro_form');
+    $('#add_product').addClass('show');
     $('#add_product_header').text('Update Product');
     $('#selectedCategory').text(category_name);
     $('#pro_name').val(product_name);
@@ -246,6 +289,7 @@
     $('#btn_add_new_pro').text('Update');
     isProduct_update = true;
     $('#product_id').val(product_id);
+    $("#discount").val(discount);
 
     // ✅ Show the image if available
     if (image_url && image_url !== '') {
@@ -396,13 +440,11 @@ $('#dropdownBtn_proform').click(function (e) {
     e.stopPropagation();
     $('#dropdownMenu_proform').toggleClass('show');
     $('#dropdownIcon_fromform').toggleClass('rotate');
-    console.log("Current display:", $('#dropdownMenu_proform').css('display'));
     // $('#dropdownMenu_in_add_proForm').css('z-index', '9999');
 
 });
 
 $(document).click(function (e) {
-    console.log("Document clicked");
     if (!$(e.target).closest('.custom-dropdown').length) {
         console.log("Closing dropdown");
         $('#dropdownMenu_in_add_proFormm').removeClass('show_');
@@ -415,11 +457,14 @@ $(document).click(function (e) {
 // Product form open
 $('#new_pro_click').click(function(e) {
     e.preventDefault();
-    $('#add_product').toggleClass('show_add_pro_form');
-    if ($('#add_product').hasClass('show_add_pro_form')) {
-        $('#dark_overlay').fadeIn();
-    } else {
-        $('#dark_overlay').fadeOut();
+    e.stopPropagation();  // Prevent event bubbling
+    $('#add_product').toggleClass('show');
+});
+
+// Close form when clicking outside
+$(document).on("click", function(e) {
+    if (!$(e.target).closest("#add_product, #new_pro_click").length) {
+        $("#add_product").removeClass("show_add_pro_form");
     }
 });
 
@@ -436,18 +481,21 @@ $('#add_cancel').on('click', function () {
 // Category form open
 $('#new_cate_click').on('click', function(e) {
     e.preventDefault();
+    e.stopPropagation();  // Prevent event propagation
     $('#add_category').toggleClass('show_add_pro_form');
-    if ($('#add_category').hasClass('show_add_pro_form')) {
-        $('#dark_overlay').fadeIn();
-    } else {
-        $('#dark_overlay').fadeOut();
+});
+
+// Close form when clicking outside
+$(document).on('click', function(e) {
+    if (!$(e.target).closest('#add_category, #new_cate_click').length) {
+        $('#add_category').removeClass('show_add_pro_form'); // Hide form
     }
 });
+
 
 // Category form cancel
 $('#add_cate_cancel').on('click', function() {
     $('#add_category').removeClass('show_add_pro_form');
-    $('#dark_overlay').fadeOut();
 });
                 
                 // Prevent form submission when clicking on the dropdown button
@@ -456,20 +504,21 @@ $('#dropdownBtn_in_add_proForm').click(function(event) {
     $('#dropdownMenu_in_add_proForm').toggle();  // Toggle the dropdown menu visibility
 });
 
-$("#categoriess").on('click', function() {
-    $('#category').toggleClass('show_add_pro_form');
-    
-    if ($('#category').hasClass('show_add_pro_form')) {
-        $('#dark_overlay').fadeIn(); // Show dark background
-    } else {
-        $('#dark_overlay').fadeOut(); // Hide it
+$("#categoriess").on("click", function () {
+    $("#category").toggleClass("show_add_pro_form");
+
+});
+
+// Close form when clicking outside
+$(document).on("click", function (e) {
+    if (!$(e.target).closest("#category, #categoriess").length) {
+        $("#category").removeClass("show_add_pro_form"); // Hide form
     }
 });
 
 $('#add_cate_close').click(function(){
     if ($('#category').hasClass('show_add_pro_form')) {
         $('#category').removeClass('show_add_pro_form');
-        $('#dark_overlay').fadeOut(); // Hide background
         if(isCategory_update){
             isCategory_update = false;
         }
@@ -480,7 +529,6 @@ $(document).on('click', '.btn-delete-category', function(){
     const btn_cate_delete = $(this)
     const category_id = $(this).data('category_id');
     const category_name = $(this).closest('tr').find('td:eq(0)').text().trim();
-    console.log(category_id, category_name)
     showAlert('Confirm', 'warning', `Are you sure you want to delete this ${category_name} category?`, true)
     .then((result) =>{
         if(result.isConfirmed){
@@ -512,58 +560,1156 @@ $(document).on('click', '.btn-delete-category', function(){
 })
 $(document).on('click', '.category-item-in-pro-from', function(e) {
     e.preventDefault();
-    
+    const currect_cate_in_pro_form = $('#selectedCategory_normal_normal').text().trim();
     // Get the selected category text and ID
     let selectedText = $(this).text();
-    let selectedId = $(this).data('id');  // Ensure the data-id attribute is passed correctly to each <a>
     
     // Update the selected category span
     $('#selectedCategory_normal_normal').text(selectedText);
-    $('#selectedCategory_normal_normal').attr('data-category_id', selectedId);  // Update data-category_id
-    
+    $(this).text(currect_cate_in_pro_form)
     // Close the dropdown after selection
     $('#dropdownMenu_proform').removeClass('show');
     $('#dropdownIcon_fromform').removeClass('rotate');
-
-    console.log(selectedText, selectedId)
 });
 
-$(document).on('click', '.category-item-normal', function(e) {
+$(document).on('click', '.category-item-normal', function (e) {
     e.preventDefault();
 
-    // Get the current selected category's text and id from the span
-    let defaultCategory = $("#selectedCategory_normal").text().trim();
-    let defaultCategory_id = $('#selectedCategory_normal').attr("data-category_id_normal");
+    // Get the selected category name
+    let selectedCategory = $(this).text().trim();
 
-    // Get the selected category text and ID from the clicked item
-    let selectedText = $(this).text().trim();
-    let selectedId = $(this).data('id');  // Ensure the data-id attribute is passed correctly to each <a>
+    // Get the currently displayed category
+    let currentCategory = $("#selectedCategory_normal").text().trim();
 
-    // If the selected category is not the same as the default category
-    if (selectedId !== defaultCategory_id) {
-        // Update the selected category span with the new category
-        $('#selectedCategory_normal').text(selectedText);
-        $('#selectedCategory_normal').attr('data-category_id_normal', selectedId);  // Set the selected category ID
-    }
+    // Update the dropdown button with the new category name
+    $("#selectedCategory_normal").text(selectedCategory);
 
-    // Close the dropdown after selection
+    // Swap the selected category name with the previous one
+    $(this).text(currentCategory);
+
+    // Close the dropdown
     $('#dropdownMenu').removeClass('show');
     $('#dropdownIcon').removeClass('rotate');
 
-    // Log current state for debugging
-    console.log('default :' + defaultCategory + " id " + defaultCategory_id);
-    console.log("after click:" + selectedText + " id " + selectedId);
+    // Fetch products for the selected category
+    get_the_first_data_in_inventory(selectedCategory, "");
 
-    // Ensure the dropdown items reset to default when clicked again (reset only if different category)
-    if (selectedId !== defaultCategory_id) {
-        // Reset the clicked item to the default category name and ID
-        $(this).text(defaultCategory);
-        $(this).attr("data-id", defaultCategory_id); // Reset to default values
+});
+
+    $('#search').on('input', function() {
+        let category_name = $('#selectedCategory_normal').text().trim(); 
+        let searchText = $('#search').val().trim();
+
+        $.ajax({
+            url: "{% url 'search_products'%}",  // Update with your actual Django URL
+            method: "GET",
+            data: {
+                category_name: category_name,
+                search_text: searchText
+            },
+            success: function(response) {
+                let productList = response.products;
+                let html = "";
+
+                if (productList.length > 0) {
+                    productList.forEach(product => {
+                        html += `<tr>
+                                    <td>${product.name}</td>
+                                    <td>${product.sku}</td>
+                                    <td>${product.quantity_in_stock}</td>
+                                    <td>${product.price}</td>
+                                    <td>${product.discount}</td>
+                                    <td>${product.status}</td>
+                                    <td>
+                                        <button class="btn btn-warning btn-edit" 
+                                            data-product_id="${product.id}" 
+                                            data-category_id="${product.category_id}" 
+                                            data-category_name="${product.category_name}" 
+                                            data-image="${product.image}">
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-danger btn-delete" 
+                                            data-product_id="${product.id}" 
+                                            data-category_id="${product.category_id}" 
+                                            data-category_name="${product.category_name}" 
+                                            data-product_name="${product.name}">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>`;
+                                console.log( product.image);
+
+                    });
+                } else {
+                    html = "<tr><td colspan='12'>No products found.</td></tr>";
+                }
+                
+
+                $('#product-listt').html(html);
+            }
+        });
+    });
+    // function get_the_first_data_in_inventory(){
+    //     $.ajax({
+    //         url: "{% url 'search_products'%}",  // Update with your actual Django URL
+    //         method: "GET",
+    //         data: {
+    //             category_name: category_name,
+    //             search_text: searchText
+    //         },
+    //         success: function(response) {
+    //             let productList = response.products;
+    //             let html = "";
+
+    //             if (productList.length > 0) {
+    //                 productList.forEach(product => {
+    //                     html += `<tr>
+    //                                 <td>${product.name}</td>
+    //                                 <td>${product.sku}</td>
+    //                                 <td>${product.quantity_in_stock}</td>
+    //                                 <td>${product.price}</td>
+    //                                 <td>${product.discount}</td>
+    //                                 <td>${product.status}</td>
+    //                                 <td>
+    //                                     <button class="btn btn-warning btn-edit" 
+    //                                         data-product_id="${product.id}" 
+    //                                         data-category_id="${product.category_id}" 
+    //                                         data-category_name="${product.category_name}" 
+    //                                         data-image="${product.image_url}">
+    //                                         Edit
+    //                                     </button>
+    //                                     <button class="btn btn-danger btn-delete" 
+    //                                         data-product_id="${product.id}" 
+    //                                         data-category_id="${product.category_id}" 
+    //                                         data-category_name="${product.category_name}" 
+    //                                         data-product_name="${product.name}">
+    //                                         Delete
+    //                                     </button>
+    //                                 </td>
+    //                             </tr>`;
+    //                 });
+    //             } else {
+    //                 html = "<tr><td colspan='12'>No products found.</td></tr>";
+    //             }
+
+    //             $('#product-list').html(html);
+    //         }
+    //     });
+    // }
+
+        // Get default category name from dropdown
+        let defaultCategoryName = $("#selectedCategory_normal").text().trim();
+    
+    // Call function on page load with default category name
+    get_the_first_data_in_inventory(defaultCategoryName, "");
+
+    // Function to fetch products based on category and search text
+    function get_the_first_data_in_inventory(category_name, searchText) {
+        $.ajax({
+            url: "{% url 'search_products' %}",  // Your Django URL
+            method: "GET",
+            data: {
+                category_name: category_name,
+                search_text: searchText
+            },
+            success: function(response) {
+                let productList = response.products;
+                let html = "";
+
+                if (productList.length > 0) {
+                    productList.forEach(product => {
+                        html += `<tr>
+                                    <td>${product.name}</td>
+                                    <td>${product.sku}</td>
+                                    <td>${product.quantity_in_stock}</td>
+                                    <td>${product.price}</td>
+                                    <td>${product.discount}</td>
+                                    <td>${product.status}</td>
+                                    <td>
+                                        <button class="btn btn-warning btn-edit" 
+                                            data-product_id="${product.id}" 
+                                            data-category_id="${product.category_id}" 
+                                            data-category_name="${product.category_name}" 
+                                            data-image="${product.image}">
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-danger btn-delete" 
+                                            data-product_id="${product.id}" 
+                                            data-category_id="${product.category_id}" 
+                                            data-category_name="${product.category_name}" 
+                                            data-product_name="${product.name}">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>`;
+                    });
+                } else {
+                    html = "<tr><td colspan='12'>No products found.</td></tr>";
+                }
+
+                $('#product-listt').html(html);
+            }
+        });
+    }
+    // When a category div is clicked
+    $('.category').on('click', function() {
+            // Remove the category_change class from all categories
+            $('.category').removeClass('category_change');
+            let category_name = $(this).text().trim();
+            load_product_in_pos(category_name, "")
+            // Add the category_change class to the clicked category
+            $(this).addClass('category_change');
+            $('#search_in_pos').val('');
+    });
+    let defaultCategoryName_in_pos = $('.category').first().text().trim();
+    load_product_in_pos(defaultCategoryName_in_pos, "");
+    function load_product_in_pos(category, search_text){
+    $.ajax({
+        url: "{% url 'load_product_in_pos' %}",
+        type: "GET",
+        data: {'category': category, "search_text": search_text},
+        success: function(response){
+            let productlist = response.productLists;
+            let data = '';
+            if(productlist.length > 0){
+                productlist.forEach(product => {
+                    if (product.quantity_in_stock > 0) { // Only load products with qty > 0
+                        if (product.discount > 0) {
+                            // Product has a discount
+                            data += `<div class="card_pos col-lg-2 col-sm-6 col-md-4 mb-2" style="cursor: pointer !important;">
+                                <div class="card">
+                                    <img src="${product.image_url}" class="card-img-top" alt="...">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-center">${product.name}</h5>
+                                        <div class="d-flex justify-content-around">
+                                            <p class="card-text fs-5 fw-bold text-black text-decoration-line-through" >$ ${product.price}</p>
+                                            <p class="card-text fs-5 fw-bold text-success" data-discount="${product.discount}">$ ${(product.price - product.discount).toFixed(2)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                        } else {
+                            // Product does not have a discount
+                            data += `<div class="card_pos col-lg-2 col-sm-6 col-md-4 mb-2" style="cursor: pointer !important;">
+                                <div class="card">
+                                    <img src="${product.image_url}" class="card-img-top" alt="...">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-center">${product.name}</h5>
+                                        <div class="d-flex justify-content-around">
+                                            <p class="card-text fs-5 fw-bold text-success " id="else_price" data-discount=${product.discount} >$ ${product.price}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                        }
+                    }
+                })
+            } else {
+                data += `<div class="col-12 d-flex justify-content-center align-items-center" style="height: 300px;">
+                        <p class="text-center">Product not found.</p>
+                    </div>`;
+            }
+            $('#product_section').html(data);
+        }
+    })
+}
+
+    $('#search_in_pos').on('input', function(){
+        let search_text = $(this).val().trim();
+        let category = $('.category.category_change').text().trim()
+        load_product_in_pos(category, search_text);
+    })
+    $(document).on("click", '.card_pos', function() {
+    const product_name = $(this).find('.card-body .card-title').text().trim();
+    
+    let product_price = '';
+    let product_discount = 0;  // Default discount to 0, in case there's no discount
+    
+    // Check if there is a strikethrough price indicating an original price and a discount
+    if ($(this).find('.card-body .text-decoration-line-through').length > 0) {
+        // Product has a discount
+        product_price = parseFloat($(this).find('.card-body .text-decoration-line-through').text().trim().replace('$', '')); // Original price
+        product_discount = parseFloat($(this).find('.card-body .text-success').data('discount')); // Discount value
+    } else {
+        // No discount, just the regular price
+        product_price = parseFloat($(this).find('.card-body .text-success').text().trim().replace('$', '')); // Regular price
+    }
+
+    // Prepare the row data for the table
+    const table_pos = $('#table_pos');
+    let qty = 1; // Initial quantity for new product
+    const price_convert = product_price.toFixed(2);  // Convert the price to 2 decimal places
+
+    // Check if the product already exists in the table
+    let existingRow = table_pos.find('tr').filter(function() {
+        return $(this).find('td').eq(0).text().trim() === product_name;  // Check if the name matches
+    });
+
+    if (existingRow.length > 0) {
+        // Product already exists, so update the quantity
+        let currentQty = parseInt(existingRow.find('.qty').text().trim());
+        existingRow.find('.qty').text(currentQty + 1);  // Update the quantity in the span
+    } else {
+        // Add new product to the table
+        let row = `
+            <tr class="pt-3" style="border-bottom: 1px solid black; color: rgb(119, 119, 119); font-weight: 500;">
+                <td class="">${product_name}</td>
+                <td><i class="fa-solid fa-minus" style="cursor: pointer;"></i> <span class="qty">${qty}</span> <i class="fa-solid fa-plus" style="cursor: pointer;"></i></td>
+                <td class="price" data-discount_from_pos="${product_discount}">$ ${price_convert}</td>
+            </tr>
+        `;
+        table_pos.append(row);
+    }
+
+    // Call the updateTotals function to update the overall totals
+    updateTotals();
+});
+
+// Function to update totals
+// Function to update totals
+function updateTotals() {
+    let totalPrice = 0;  // To store the total price after discount
+    let totalDiscount = 0;  // To store the total discount
+    let subtotal = 0;  // To store the total price before discount
+
+    // Loop through each row in the table
+    $('#table_pos tr').each(function() {
+        let qty = parseInt($(this).find('.qty').text().trim()); // Get quantity of the product
+        let price = parseFloat($(this).find('.price').text().trim().replace('$', '')); // Get the price of the product
+        let discount = parseFloat($(this).find('.price').data('discount_from_pos')); // Get the discount for the product (fixed amount)
+
+        // Calculate the discounted price (subtract the discount from the price)
+        let discountPrice = price - discount; // Discounted price = original price - discount amount
+        let totalProductPrice = discountPrice * qty; // Calculate the total price for this product after discount
+
+        // Add to the total price and total discount
+        subtotal += price * qty; // Subtotal (before discount)
+        totalPrice += totalProductPrice; // Total after discount
+        totalDiscount += discount * qty; // Total discount applied (discount * qty)
+    });
+
+    // Update the total values on the page
+    $('#discount_value').text('$ ' + totalDiscount.toFixed(2)); // Total Discount
+    $('#subtotal_value').text('$ ' + subtotal.toFixed(2)); // Subtotal (before discount)
+    $('#total_value').text('$ ' + totalPrice.toFixed(2)); // Total (after discount)
+}
+
+
+// Handle the quantity decrease
+$(document).on('click', '.fa-minus', function() {
+    let qtyElement = $(this).siblings('.qty');
+    let qty = parseInt(qtyElement.text().trim());
+    
+    if (qty > 1) {
+        qty--;  // Decrease the quantity
+        qtyElement.text(qty);  // Update the displayed quantity
+    } else {
+        // If quantity is 1, remove the row
+        $(this).closest('tr').remove();
+    }
+
+    // Call the function to update the total price after quantity change
+    updateTotals();
+});
+
+// Handle the quantity increase
+$(document).on('click', '.fa-plus', function() {
+    let qtyElement = $(this).siblings('.qty');
+    let qty = parseInt(qtyElement.text().trim());
+
+    qty++;  // Increase the quantity
+    qtyElement.text(qty);  // Update the displayed quantity
+
+    // Call the function to update the total price after quantity change
+    updateTotals();
+});
+$('#Continue').on('click', function(e) {
+    e.preventDefault();
+    if ($("#table_pos").find("tr").length === 0) {
+    showAlert('Warning', 'warning', 'Please add product before pay!');
+    return;
+}
+    // Apply styles directly to #confirm_order
+    $('#confirm_order').css({
+        'opacity': '1',
+        'transform': 'translate(-50%, -50%) scaleY(1)',
+        'display': 'flex',  // Ensure it's displayed
+        'pointer-events': 'auto',  // Allow interactions
+        'flex-direction': 'column',
+        'pointer-events': 'auto'
+       
+    });   
+    const currentDate = new Date();
+
+// Get the year, month, and day
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');  // Add 1 because months are zero-indexed
+    const day = String(currentDate.getDate()).padStart(2, '0');  // Pad day with leading zero if necessary
+    const formattedDate = `${year}-${month}-${day}`;
+    const emp_name = $('#emp_name').text().trim();
+    $("#saler").find('span').text(emp_name)
+    $("#date").find('span').text(formattedDate)
+// Combine into YYYY-MM-DD format
+    // Initialize an empty array to store the product data
+    var productData = [];
+    let row_count = '';
+    // Loop through each row in the tbody
+    $('#table_pos tr').each(function() {
+        // Get the product name from the second column (td)
+        var productName = $(this).find('td').eq(0).text().trim();
+        
+        // Get the quantity from the third column (td) using class .qty
+    // Get the quantity from the second column (td) and convert to float
+    var qtyText = $(this).find('td').eq(1).text().trim();
+    var qty = parseFloat(qtyText);  // Convert to number
+
+    // Get the price from the third column (td) and convert to float
+    var priceText = $(this).find('td').eq(2).text().trim().replace('$','');
+    var price = parseFloat(priceText);  // Convert to number
+
+    // Debugging: Log the values of price and qty to check
+        // Ensure both qty and price are valid numbers
+        if (!isNaN(qty) && !isNaN(price) && qty > 0 && price > 0) {
+        var total_price = (price * qty).toFixed(2);  // Calculate total price
+        console.log(`Total Price: ${total_price}`); // Log the total price
+    } else {
+        var total_price = "Invalid Data";  // Handle invalid data
+        console.log("Invalid data detected!");
+    }
+        // Push the data into the array as an object
+        productData.push({
+            name: productName,
+            quantity: qty,
+            price: total_price
+        });
+    });
+        productData.reverse();
+        $(".before_receipt").remove();
+        
+            // Log the data to see the result
+        productData.forEach((product, index) =>{
+            $(".receipt_body").append(`
+        <div class="before_receipt px-3 mt-2 d-flex justify-content-between">
+            <p class="text-muted w-100 text-start">${index + 1}</p>
+            <p class="text-muted w-100 text-start">${product.name}</p>
+            <p class="text-muted w-100 text-center ps-2">${product.quantity}</p>
+            <p class="text-muted w-100 text-end">${product.price}</p>
+        </div>
+    `)
+        })
+    let payment_method = $('.payment_method.payment_choose').text().trim();
+    $('#payment_method').text(payment_method);
+    $('#subtotal_before_confirm').text($('#subtotal_value').text().trim());
+    $('#discount_before_confirm').text($('#discount_value').text().trim());
+    $('#total_before_confirm').text($('#total_value').text().trim());
+});
+$('.fa-user-pen').click(function(){
+    $(".add_customer").toggleClass('show_add_customer');
+    $('#confirm_order').css('opacity', '0')
+})
+$("#btn_add_custmer").click(function(){
+    if($("#confirm_order").css('opacity') == '0'){
+        $('#confirm_order').css('opacity', '1');
+    }
+
+    var customer_name = $('#customer_name_input').val().trim();
+    if(customer_name){
+        $('.fa-user-pen').hide();
+        $('#cus_name').find('span').text(customer_name)
+    }else{
+        $('.fa-user-pen').hide();
+        $('#cus_name').find('span').text('Guest')
+    }
+    $('.add_customer').removeClass('show_add_customer');
+})
+$('#btn-confirm-order').on('click', function(){
+         const currentDate = new Date();
+
+        // Get the year, month, and day
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');  // Add 1 because months are zero-indexed
+        const day = String(currentDate.getDate()).padStart(2, '0');  // Pad day with leading zero if necessary
+
+        // Combine into YYYY-MM-DD format
+        const formattedDate = `${year}-${month}-${day}`;
+        const saler = $("#emp_name").text().trim();
+        // Extract customer name by filtering out the text node
+        let real_cus_name = '';
+        const cus_name_before = $('#cus_name').find('span').text().trim();
+        if(cus_name_before){
+            real_cus_name = cus_name_before;
+        }
+        else{
+            real_cus_name = 'Guest';
+        }
+        var productData = [];
+    let row_count = '';
+    // Loop through each row in the tbody
+    $('#table_pos tr').each(function() {
+        // Get the product name from the second column (td)
+        var productName = $(this).find('td').eq(0).text().trim();
+        
+        // Get the quantity from the third column (td) using class .qty
+    // Get the quantity from the second column (td) and convert to float
+    var qtyText = $(this).find('td').eq(1).text().trim();
+    var qty = parseFloat(qtyText);  // Convert to number
+
+    // Get the price from the third column (td) and convert to float
+    var priceText = $(this).find('td').eq(2).text().trim().replace('$','');
+    var price = parseFloat(priceText);  // Convert to number
+
+    // Debugging: Log the values of price and qty to check
+        // Ensure both qty and price are valid numbers
+        if (!isNaN(qty) && !isNaN(price) && qty > 0 && price > 0) {
+        var total_price = (price * qty).toFixed(2);  // Calculate total price
+        console.log(`Total Price: ${total_price}`); // Log the total price
+    } else {
+        var total_price = "Invalid Data";  // Handle invalid data
+        console.log("Invalid data detected!");
+    }
+        // Push the data into the array as an object
+        productData.push({
+            name: productName,
+            quantity: qty,
+            price: total_price
+        });
+    });
+    productData.reverse();
+
+    let payment_method = $('#payment_method').text().trim();
+    let subtotal = $('#subtotal_before_confirm').text().trim().replace('$', '');
+    let discount = $('#discount_before_confirm').text().trim().replace('$','');
+    let total = $('#total_before_confirm').text().trim().replace('$','');
+
+        console.log('Date: '+ formattedDate)
+        console.log('Open by: '+ saler)
+        console.log('customere name: '+ real_cus_name)
+        productData.forEach(product=>{
+            console.log('product name: '+ product.name)
+            console.log('product qty: ' + product.quantity)
+            console.log('product price: '+ product.price)
+        })
+        console.log('payment method: ' + payment_method);
+        console.log('Subtotal: '+ subtotal);
+        console.log('Discount: '+ discount)
+        console.log('Total: '+ total);
+        // Collect all the data into an object
+        const orderData = {
+        date: formattedDate,
+        cashier: saler,
+        customer: real_cus_name,
+        orderItems: productData,
+        paymentMethod: payment_method,
+        subtotal: subtotal,
+        discount: discount,
+        totalAmount: total
+    };
+    console.log(orderData); 
+         // Send the data to the Django backend via AJAX
+    // Send the data to the server using AJAX
+    $.ajax({
+    url: '/generate_receipt/',  
+    method: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify(orderData),
+    success: function(response) {
+        var printWindow = window.open('', '_blank');
+        printWindow.document.write('<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">');
+        printWindow.document.write(response.html); // Load HTML from Django
+        printWindow.document.close();
+        printWindow.print();
+       
+
+    },
+    error: function(xhr, status, error) {
+        console.log('Error generating receipt:', error);
+    }
+});
+
+    if($("#confirm_order").css('opacity') == '1'){
+        $('#confirm_order').css('opacity', '0');
+    }
+    $("#table_pos").find('tr').remove()
+})
+$(document).on('click', '.payment_method', function() {
+    $('.payment_method').removeClass('payment_choose');
+    $(this).toggleClass('payment_choose');
+});
+load_total_orders_today_in_das();
+function load_total_orders_today_in_das(){
+    $.ajax({
+        url: "{% url 'sale_counts'%}",
+        type: 'GET',
+        success: function(response){
+            console.log(response.sale_counts)
+            if(response.sale_counts > 0){
+                $("#total_sale_today").text(response.sale_counts)
+               
+            }
+            else{
+                $("#total_sale_today").text('0');
+            }
+           
+        }
+
+    })
+}
+load_total_orders_in_das();
+function load_total_orders_in_das(){
+    $.ajax({
+        url: "{% url 'total_orders'%}",
+        type: 'GET',
+        success: function(response){
+            if(response.total_orders > 0){
+                $("#total_orders").text(response.total_orders)
+               
+            }
+            else{
+                $("#total_orders").text('0');
+            }
+           
+        }
+
+    })
+}
+load_total_customer()
+function load_total_customer(){
+    $.ajax({
+        url: "{% url 'total_customers' %}",
+        type: 'GET',
+        success: function(response){
+            if(response.total_customers > 0){
+                $('#total_customers').text(response.total_customers)
+            }else{
+                $("#total_customers").text('0');
+            }
+        }
+    })
+}
+total_product();
+function total_product(){
+    $.ajax({
+        url: "{% url 'total_product' %}",
+        type: "GET",
+        success: function(response){
+            if(response.total_product > 0){
+                $("#total_product").text(response.total_product)
+            }
+            else{
+                $("#total_product").text('0');
+            }
+        }
+    })
+}
+
+top_selling_product()
+function top_selling_product(){
+    $.ajax({
+        url: "{% url 'top_selling_product' %}",
+        type: 'GET',
+        success:function(response){
+            let html = '';
+            if(response.top_products.length > 0){
+                response.top_products.forEach(product =>{
+                    html += `<tr>
+                    <td>${product.product__name}</td>
+                    <td>${product.total_sold}</td>
+                </tr>`;
+                })
+            }else{
+               html= `<tr>
+                    <td colspan='12'>Product not found</td>
+                </tr>`
+            }
+            $("#top_selling_product").html(html)
+        }
+    })
+}
+low_stock_product()
+function low_stock_product(){
+    $.ajax({
+        url: "{% url 'low_stock' %}",
+        type: 'GET',
+        success: function(response){
+            let html ='';
+            if(response.low_stock_products.length > 0){
+                response.low_stock_products.forEach(low_prodcut =>{
+                    html += `<tr>
+                            <td>${low_prodcut.name}</td>
+                            <td>${low_prodcut.quantity_in_stock}</td>
+                        </tr>`;
+                })
+            }else{
+                html = `<tr><td colspan='12'>No low stock product are found</tr>`
+            }
+            $("#low_stock_in_das").html(html)
+        }
+    })
+}
+recent_transaction();
+function recent_transaction(){
+    $.ajax({
+        url: "{% url 'recent_transaction' %}",
+        type: 'GET',
+        success: function(response){
+            let html ='';
+            if(response.recent_sales.length > 0){
+                response.recent_sales.forEach(sale => {
+                    html += `<tr>
+                        <td>${sale.date}</td>
+                        <td>${sale.order_id}</td>
+                        <td>${sale.total}</td>
+                        <td>${sale.cashier}</td>
+                    </tr>`;
+                });
+            } else {
+                html = `<tr>
+                    <td colspan="5">No recent transactions found</td>
+                </tr>`;
+            }
+            $("#recent_transaction").html(html)
+        }
+    })
+}
+sale_summary()
+function sale_summary(){
+    $.getJSON("/sale-summary/", function(data){
+        $(".sale_summary").find('tbody').empty();
+        let html = "";
+        if(data.sales_summary.length > 0){
+            data.sales_summary.forEach(sale =>{
+                html += `<tr>
+                        <td>${sale.date}</td>
+                        <td>${sale.orders}</td>
+                        <td>$ ${sale.revenue.toFixed(2)}</td>
+                        <td>${sale.cashier}</td>
+                    </tr>`
+            })
+
+        }else{
+            html = `<tr> <td colspan='12'> Product not found!</td></tr>`
+        }
+        $(".company_name").text(data.company.name)
+        $(".company_logo").attr('src', data.company.logo)
+        $('.sale_summary').find('tbody').html(html)
+    })
+}
+
+
+
+
+
+function loadProducts() {
+    $.ajax({
+        url: "{% url 'fetch_products' %}",  // Change to your actual URL
+        type: "GET",
+        dataType: "json",
+        success: function (response) {
+            let tbody = $(".low_stock_table_container_list tbody");
+            tbody.empty();
+            let html = '';
+
+            if (response.products.length > 0) {
+                response.products.forEach(product => {
+                    let statusText = product.quantity_in_stock <= 0 ? "out of stock" : product.status;
+                    let statusColor = product.quantity_in_stock <= 0 ? "red" : "black";
+                    html += `<tr>
+                                <td class="pt-3">${product.name}</td>
+                                <td class="pt-3">${product.sku}</td>
+                                <td class="pt-3">${product.quantity_in_stock}</td>
+                                <td class="pt-3">${product.price}</td>
+                                <td class="pt-3">${product.discount}</td>
+                                <td class="pt-3" style="color: ${statusColor}">${statusText}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-edit" 
+                                        data-product_id="${product.id}" 
+                                        data-category_id="${product.category_id}" 
+                                        data-category_name="${product.category_name}" 
+                                        data-image="${product.image || ''}">
+                                        Edit
+                                    </button>
+                                    <button class="btn btn-danger btn-delete" 
+                                        data-product_id="${product.id}" 
+                                        data-category_id="${product.category_id}" 
+                                        data-category_name="${product.category_name}" 
+                                        data-product_name="${product.name}">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>`;
+                });
+            } else {
+                html = '<tr><td colspan="7" class="text-center">Products empty.</td></tr>';
+            }
+            tbody.html(html);
+
+            // Get notif count from Django session response
+            let final_count = response.notif_count;
+
+            // Update UI
+            updateNotificationDisplay(final_count);
+        },
+        error: function (error) {
+            console.error("Error fetching products:", error);
+        }
+    });
+}
+
+// Function to update notification count display
+function updateNotificationDisplay(count) {
+    count = parseInt(count) || 0;
+    let notifElement = $('.notif');
+
+    if (notifElement.length > 0) {
+        if (count > 0) {
+            notifElement.text(count).show();
+            let notif_fa_bell = $("#notif_fa-bell");
+            notif_fa_bell.removeClass('d-none');
+        } else {
+            notifElement.hide();
+        }
+    }
+}
+//--------------------------
+// Restore notification count on page load from Django session
+    $.ajax({
+        url: "{% url 'fetch_products' %}",  // Fetch notification count again
+        type: "GET",
+        dataType: "json",
+        success: function (response) {
+            let savedCount = response.notif_count || 0;
+            console.log('Restored Count: ' + savedCount);
+            updateNotificationDisplay(savedCount);
+        }
+    });  
+    //-----------------
+// Toggle notification container and dark overlay when the bell button is clicked
+$(document).on('click', '#notif_fa-bell_btn', function (e) {
+    e.stopPropagation();  // Prevent click event from propagating to the document
+    $(".notif_container").toggleClass('show_add_'); // Toggle visibility of notification container
+});
+
+// Close the notification container when clicking outside of it
+$(document).on('click', function (e) {
+    if (!$(e.target).closest('#notif_fa-bell_btn, .notif_container').length) {
+        $(".notif_container").removeClass('show_add_'); // Hide the notification container
     }
 });
 
 
+loadLowStockProducts()
+function loadLowStockProducts() {
+    $.ajax({
+        url: "{% url 'fetch_low_stock_products' %}",  // Adjust URL to your Django URL pattern
+        type: "GET",
+        dataType: "json",
+        success: function(response) {
+            let notifications = '';
+            if (response.low_stock_products.length > 0) {
+                response.low_stock_products.forEach(function(product) {
+                    let status = product.quantity <= 0 ? 'out of stock' : 'low stock';
+                    let color = product.quantity <= 0 ? 'red' : 'rgb(185, 103, 8)'
+                    notifications += `
+                        <p class="teg_notif text-muted mb-2 mx-3 shadow p-3 rounded-2" style="font-size: 18px !important; font-weight: 600; background-color: #cccccc; cursor: pointer !important;">
+                            Product name <span class="text-black">${product.name}</span> is <span style="color: ${color}">${status}</span>
+                        </p>
+                    `;
+                });
+                $('.notif_container').find('header').after(notifications)
+            } else {
+                $('#notif_container').find('header').after('<p>No products are low on stock.</p>')
+            }
+        },
+        error: function(error) {
+            console.error("Error fetching low stock products:", error);
+        }
+    });
+}
+
+
+    // Load products on page load
+    loadProducts();
+
+    $("#profile").click(function(){
+        $('.profile_container').toggleClass('show_add_pro_form');
+    })
+    $(".fa-xmark").click(function(){
+        if($(".profile_container").hasClass('show_add_pro_form')){
+            $(".profile_container").removeClass('show_add_pro_form')
+        }
+    })
+    $(document).on('click','#save', function (e) {
+        e.preventDefault();
+    showAlert('Confirm', 'warning', "Are you sure you want to save this company's information?", true)
+    .then((result) => {
+        if (result.isConfirmed) {
+            let com_name = $("#com_name").val().trim();
+            let address = $("#address").val().trim();
+            let logo = $("#logo_com")[0].files[0]; // Get the selected file
+
+            let formData = new FormData();
+            formData.append("name", com_name);
+            formData.append("address", address);
+            if (logo) {
+                formData.append("logo", logo);
+            }
+
+            $.ajax({
+                url: "{% url 'company_setting' %}", // Ensure correct URL
+                type: "POST",
+                data: formData,
+                processData: false, // Important for file upload
+                contentType: false, // Important for file upload
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }, // Include CSRF token
+                success: function (response) {
+                    showAlert('Success', 'success', 'Company information updated successfully!')
+                    .then(() => {
+                        setTimeout(() => {
+                            location.reload(); // Give time to read the success message
+                        }, 1000);
+                    });
+                },
+                error: function (error) {
+                    console.error("Error saving company info:", error);
+                    showAlert('Error', 'error', 'Failed to update company information.');
+                }
+            });
+        }
+    });
+});
+$('#setting_cashier_btn').click(function() {
+        // Remove the current content (General settings)
+        $('#settings-content').empty();
+        $("#setting_cashier_btn").toggleClass('custom_two_btn')
+        if($('#setting_general_btn').hasClass('custom_two_btn')){
+            $("#setting_general_btn").removeClass("custom_two_btn")
+        }
+        // Load the cashier content from a Django URL or a predefined file
+        $('#settings-content').load("{% url 'setting_cashier' %}");
+         // Load the cashier content from a Django URL or a predefined file
+         $.ajax({
+            url: "{% url 'all_cashiers' %}",
+            type: 'GET',
+            dataType: 'json',
+            success: function(response){
+                let html = "";
+                if(response.cashiers.length > 0){
+                    response.cashiers.forEach(cashier =>{
+                        html += `<tr data-id="${cashier.id}">
+                    <td>${cashier.username}</td>
+                    <td>${cashier.role}</td>
+                    <td><button class="px-2 btn btn-info btn-new text-white view_detail" 
+                        data-id = "${cashier.id}" data-image="${cashier.image}"
+                        >view detail</button></td>
+                </tr>`
+                    })
+                }else{
+                    html = "<tr><td colspan='12'>Cashiers not found!</td></tr>"
+                }
+                $('.table_container_cashier').find('tbody').html(html)
+            }
+        })
+    });
+    $('#setting_general_btn').click(function() {
+        // Remove the current content (General settings)
+        $('#settings-content').empty();
+        $("#setting_general_btn").toggleClass('custom_two_btn')
+        if($('#setting_cashier_btn').hasClass('custom_two_btn')){
+            $("#setting_cashier_btn").removeClass("custom_two_btn")
+        }
+
+        $('#settings-content').load("{% url 'setting_general' %}");
+
+    });
+// Open user info form when .view_detail is clicked
+$(document).on("click", '.view_detail', function (e) {
+    e.stopPropagation();  // Prevent event from propagating to document click handler
+
+    const id = $(this).data('id');
+    const name = $(this).closest('tr').find('td:eq(0)').text().trim();
+    const role = $(this).closest('tr').find("td:eq(1)").text().trim();
+    let image = $(this).data('image');
+
+    // Populate the form fields
+    $(".user_info_container input[type='text']").val(name);
+    $(".user_info_container .form-select").val(role);
+    $('#id').val(id);
+    $("#name_info").text(name + "'s information");
+
+    // Show image if available
+    if (image) {
+        $(".user_info_container .image img").attr("src", image).attr("alt", name);
+    } else {
+        $(".user_info_container .image img").attr("src", "default_image.jpg"); // Fallback image
+    }
+
+    // Show the user info form and dark overlay
+    $('.user_info_container').toggleClass('show_add_pro_form');
 });
 
+// Close user info form when clicking outside
+$(document).on("click", function (event) {
+    if (!$(event.target).closest(".user_info_container, .view_detail").length) {
+        $(".user_info_container").removeClass("show_add_pro_form"); // Hide form
+    }
+});
+
+$(document).on('click', '.delete_user', function() {
+    const id = $("#id").val().trim();
+    console.log('User ID: ' + id);
+
+    let csrftoken = $("input[name=csrfmiddlewaretoken]").val(); // Get CSRF token
+
+    showAlert('Confirm', 'warning', 'Are you sure you want to delete this user?', true)
+    .then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: "{% url 'delete_user' %}",
+                type: 'POST',
+                data: { 'id': id },
+                headers: { 'X-CSRFToken': csrftoken }, // ✅ CSRF token
+                success: function(response) {
+                        showAlert('Success', 'success', response.message);
+
+                        // **REMOVE the deleted user row from the table**
+                        $('.table_container_cashier').find('tbody').find(`tr[data-id="${id}"]`).remove(); 
+                        console.log( $('.table_container_cashier').find('tbody').find(`tr`).html())
+                        // Hide the user detail form
+                        $(".user_info_container").removeClass('show_add_pro_form');
+
+                },
+                error: function(response) {
+                    showAlert('Error', 'error', 'Failed to delete the user.');
+                }
+            });
+        }
+    });
+});
+    $(document).on('click', '.save_user',function(){
+        const id = $("#id").val().trim();
+        const name = $("#name").val().trim();
+        const role = $("#role").val().trim();
+        const image = $("#image")[0].files[0];
+        let formdata = new FormData();
+        formdata.append('id',id)
+        formdata.append('name',name)
+        formdata.append('role',role)
+        if(image){
+        formdata.append('image',image)
+        }
+        let csrftoken = $("input[name=csrfmiddlewaretoken]").val(); // Get CSRF token from form
+        showAlert('Confirm', 'warning', 'Are you sure you want save this user\'s information?', true)
+        .then((result) =>{
+            if(result.isConfirmed){
+                $.ajax({
+                    url: "{% url 'update_user' %}",
+                    type: 'POST',
+                    processData: false,
+                    contentType: false,
+                    data: formdata,
+                    headers: {
+                    'X-CSRFToken': csrftoken  // ✅ Add CSRF token here
+                    },
+                    success: function(response){
+                        showAlert('Confirm', 'success', 'User was saved.');
+                        $('.user_info_container').removeClass('show_add_pro_form')
+                    },
+                    error: function(response){
+                        showAlert('Error', 'error', response.message)
+                    }
+            })
+            }
+        })
+    })
+$(document).on('click', '#dark_overlay', function () {
+    $(".add_user_coontainer").removeClass('show_add_pro_form');
+});
+ // Listen for changes on the file input
+ $('#image_input').on('change', function(event) {
+    const file = event.target.files[0]; // Get the selected file
+
+    if (file) {
+      const reader = new FileReader(); // Create a FileReader instance
+
+      // When the file is read, set the src of the image
+      reader.onload = function(e) {
+        $('#image_preview').attr('src', e.target.result); // Set the image src to the file's data URL
+      };
+      $("#image_preview").removeClass('d-none')
+      $("#no_image_text").hide()
+      reader.readAsDataURL(file); // Read the file as a data URL (this triggers onload)
+    }
+  });
+  $("#add_in_form").click(function(){
+    const name = $("#name_in_form").val().trim();
+    const password = $("#pw").val().trim();
+    const role = $("#role_info_add").val().trim();
+    const image = $("#image_input")[0].files[0];
+    showAlert('Confirm', 'warning', 'Are you sure you want to add this user?', true)
+    .then((result) =>{
+        if(result.isConfirmed){
+            var formData = new FormData(); // Collect form data including image file
+            formData.append('username', name)
+            formData.append('password', password)
+            formData.append('role', role)
+            if(image){
+            formData.append('image', image)
+            }
+            let csrftoken = $("input[name=csrfmiddlewaretoken]").val(); // Get CSRF token
+            $.ajax({
+                type: "POST",
+                url: "{% url 'register' %}", // The URL for the Django view
+                data: formData, // Sending the form data
+                processData: false, // Don't let jQuery process the data
+                contentType: false, // Don't set content-type header (FormData handles it)
+                headers: { 'X-CSRFToken': csrftoken }, // ✅ CSRF token
+                success: function(response) {
+                    showAlert('Success', 'success', response.message)
+                    $("#name_in_form").val('') // Clear the name input
+                    $("#pw").val('') // Clear the password input
+                    $("#role_info_add").find("option[value='Cashier']").prop('selected', true) // Reset the role to 'Cashier'
+
+                    // Clear image input (file input)
+                    $('#image_input').val('')
+                    $("#no_image_text").show()
+                    // Hide the image preview (set class to d-none)
+                    $("#image_preview").addClass('d-none')
+
+                },
+                error: function(response) {
+                    showAlert('Error', 'error', response.message)
+                }
+            });
+
+        }
+    })
+  })
+    // Function to hide the form when clicking outside
+    $(document).on("click", function (event) {
+        if (!$(event.target).closest(".add_user_coontainer, #a").length) {
+            $(".add_user_coontainer").removeClass("show_add_pro_form");
+        }
+    });
+
+    // Prevent click inside the form from closing it
+    $(".add_user_coontainer").on("click", function (event) {
+        event.stopPropagation();
+    });
+
+    // Toggle the form when clicking #a
+    $(document).on("click", "#a", function () {
+        $(".add_user_coontainer").toggleClass("show_add_pro_form");
+    });
+  $.ajax({
+    url: "{% url 'name_and_addr' %}",
+    type: 'GET',
+    success: function(response){
+        let name = response.name || "Name is not available";
+        let address = response.address || "Address is not available";
+        $("#name_of_com").text(name);
+        $("#address_of_com").text(address)
+    }
+  })
+})
     
 </script>

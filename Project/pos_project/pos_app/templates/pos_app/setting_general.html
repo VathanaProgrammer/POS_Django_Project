@@ -1,0 +1,30 @@
+{% load static %}<div class="company_info shadow-new w-75 p-3 m-2 my-3 bg-white d-flex flex-column" style="height: 400px;">
+    <h3 class="fw-bold fs-3">Company information</h3>
+    <div class="d-flex justify-content-between">
+        <form action="" method="post" enctype="multipart/form-data" class="row w-50">
+            {% csrf_token %}
+            <div class="col-12">
+                <label for="name" class="form-label">Name</label>
+                <input id="com_name" class="form-control mb-2" type="text" name="" value="{{company.name}}">
+            </div>
+            <div class="col-12">
+                <label for="address" class="form-label">Address</label>
+                <input id="address" type="text" class="form-control mb-2" value="{{company.address}}" >
+            </div>
+            <div class="col-12">
+                <label for="pic" class="form-label">Image</label>
+                <input id="logo_com" type="file" class="form-control mb-2">
+            </div>
+        </form>
+        <section class="m-2 w-50 d-flex justify-content-center align-items-center">
+            {% if company.logo %}
+                <img src="{{company.logo.url}}" alt="" width="150" height="200" class="shadow-new rounded-3">
+            {% else %}
+            <img src="{% static 'pos_app/images/coffee_logo.jpg' %}" alt="" width="150" height="200" class="shadow-new rounded-3">
+            {% endif %}
+        </section>
+    </div>
+    <section class="d-flex justify-content-end mt-auto">
+        <button class="btn btn-success px-4 py-2" id="save">Save</button>
+    </section>
+</div>

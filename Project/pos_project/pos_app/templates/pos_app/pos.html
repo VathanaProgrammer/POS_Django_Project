@@ -1,0 +1,194 @@
+{% extends "pos_app/base.html" %}
+{% block title %}Pos | Pos View{% endblock title %}
+
+{% block content %}
+<div class="h-100 pe-3 pt-3 ps-4 d-flex" style="width: 100% !important;">
+    <div class="" style="width: 80% !important; height: 100% !important;">
+        <div class="row products shadow-new me-2 bg-white w-100" style=" height: 100% !important;">
+            <div class="d-flex justify-content-end col-12">
+                <div class="d-flex  ms-3 me-2 mt-2 ">
+                    <input class="text-white"
+                        id="search_in_pos"
+                        type="text"
+                        placeholder="Search items here"
+                        style="height: 40px; border-radius: 20px; background-color: rgb(170, 170, 170); padding: 0 15px; border: none; cursor: pointer; color: white;" />
+                    <button type="button"
+                        style="background-color: rgb(2, 119, 55); border: none; border-radius: 50%; padding: 10px; margin-left: 5px; display: flex; align-items: center; justify-content: center; height: 40px; width: 40px; cursor: pointer;">
+                        <i class="fa-solid fa-magnifying-glass text-white"></i>
+                    </button>
+                </div>
+            </div>
+            <section id="product_section" class="product_section row row-cols-1 ps-2 pe-0 py-2 flex-grow-1" style="height: 650px !important; overflow-y: auto !important;">
+               {% if products %}
+                    {% for product in products %}
+                    <div class="col-lg-2 col-sm-6 col-md-4 mb-2" >
+                        <div class="card">
+                            <img src="{{ product.image.url}}" class="card-img-top" alt="...">
+                            <div class="card-body">
+                              <h5 class="card-title text-center">{{product.name}}</h5>
+                              <p class="card-text fs-5 fw-bold text-success text-center">$ {{ product.price}}</p>
+                            </div>
+                          </div>
+                    </div>
+                    {% endfor %}
+                {%else%}
+                    <div class="col-12 text-center">Product is empty.</div>
+               {% endif %}
+
+            </section>
+        </div>
+        <div class="Categories mt-3 me-2 d-flex overflow-auto">
+            {% for category in categories %}
+            <div class="category {% if forloop.first %}category_change{% endif %} p-4 shadow-new me-2 bg-white" style="border: 3px solid green; border-radius: 5px; cursor: pointer !important;">
+                <h4 data-category_id_in_pos="{{ category.id }}">{{ category.name }}</h4>
+            </div>
+            {% endfor %}        
+        </div>
+    </div>
+    <div class="ms-2 me-1 d-flex flex-column" style="width: 20% !important; height: 800px !important;">
+        <div class="shadow-new payment d-flex flex-column bg-white" style="height: 100% !important;">
+            <header>
+                <p class="text-center fs-5 fw-bold pt-2">Checkout</p>
+            </header>
+           <div class="table_container"  style="flex-grow: 1; overflow-y: auto; height: 100px !important;">
+            <table class="table text-center" style="width: 100% !important;">
+                <thead style="background-color: rgb(235, 235, 235);">
+                    <tr style="color: rgb(112, 112, 112); font-size: 15px; font-weight: 800 !important;">
+                        <th>Name</th>
+                        <th>QTY</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <style>
+                    .fa-minus{
+                        padding: 3px !important;
+                        background-color: red ;
+                        border-radius: 50% ;
+                        
+                    }
+                    .fa-plus{
+                        padding: 3px !important;
+                        background-color: rgb(95, 211, 0) ;
+                        border-radius: 50% ;
+                    }
+                    .category_change{
+                        background-color: #007C40 !important;
+                        color: white !important;
+                    }
+                </style>
+                <tbody class="" id="table_pos" style="overflow-y: auto !important; height: auto !important;">
+
+                </tbody>
+            </table>
+           </div>
+            <div class="d-flex mt-auto flex-column ">
+                <div id="payment" class="d-flex w-100 justify-content-between mb-1">
+                    <div class="payment_method btn w-50 "style="border: 2px solid rgb(255, 255, 255);background-color: rgb(182, 182, 182);">
+                        Cash
+                    </div>
+                    <div class="payment_method btn w-50 payment_choose" style="border: 2px solid rgb(255, 255, 255);background-color: rgb(182, 182, 182);">
+                        Card
+                    </div>
+                </div>               
+                <div class="" style="background-color: rgb(235, 235, 235)!important">
+                    <div class="d-flex justify-content-between px-2 pt-1" style="font-size: 15px !important; font-weight: 500;">
+                        <p>Discount</p>
+                        <p id="discount_value">$ 0.00</p>
+                    </div>
+                    <div class="d-flex justify-content-between px-2" style="font-size: 15px !important; font-weight: 500;">
+                        <p>Subtotal</p>
+                        <p id="subtotal_value">$ 0.00</p>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between px-2 pt-2" style="font-size: 15px !important; font-weight: 500;">
+                    <p>Total</p>
+                    <p id="total_value">$ 0.00</p>
+                </div>                
+            </div>
+        </div>
+        <div class="w-100 mt-3 shadow-new">
+            <button id="Continue" class="bg-success btn-new text-white w-100 py-2 px-4" style="font-size: 17px !important; font-weight: 600 !important;">Continue</button>
+        </div>
+    </div>
+</div>
+    <div id="confirm_order" class="shadow-new p-4 position-absolute bg-white" style="transition: all 0.4s ease; opacity: 0; top: 50%; left: 50%; transform: translate(-50%, -50%) scaleY(0.2);min-height: 650px; min-width: 480px; pointer-events: none; z-index: 99; ">
+        <header class="w-100 pt-5 px-3">
+            <h2 class="fs-2 fw-bold text-center" id="name_of_com"></h2>
+        </header>
+        <p class="text-muted text-center px-1" id="address_of_com"></p>
+        <p class="text-muted text-center"> Phone number: (+855) 77 433 3333</p>
+        <div class="date_and_cashier px-3 mt-5 d-flex justify-content-between">
+            <p class="text-muted" id="date">Date: <span></span></p>
+            <!-- <p class="text-muted">Invoice No: 1</p> -->
+        </div>
+        <div class="date_and_cashier px-3 mt-2 d-flex justify-content-between">
+            <p class="text-muted" id="saler">Open By: <span></span></p>
+            <p class="text-muted" id="cus_name">Customer's Name:<span></span><i class="fa-solid fa-user-pen ms-1 fs-4 text-warning"></i></p>
+        </div>
+        <div class="dashed-line mt-2" ></div>
+        <div id="receipt_header" class="date_and_cashier px-3 mt-2 d-flex justify-content-between">
+            <p class="text-muted">No</p>
+            <p class="text-muted">Product Name</p>
+            <p class="text-muted">QTY</p>
+            <p class="text-muted">Amount</p>
+        </div>
+        <div class="receipt_body overflow-auto" style="max-height: 150px; overflow-y: auto;">
+
+        </div>
+        
+        <div class="dashed-line mt-2" ></div>
+        <div class="d-flex mt-3 justify-content-between">
+            <p class="fs-4 fw-semibold">Payment:</p>
+            <p class="fs-4 fw-semibold" id="payment_method"></p>
+        </div>
+        <div class="d-flex mt-3 justify-content-between">
+            <p class="fs-4 fw-semibold">Subtotal:</p>
+            <p class="fs-4 fw-semibold" id="subtotal_before_confirm">$3.75</p>
+        </div>
+        <div class="d-flex mt-1 justify-content-between">
+            <p class="fs-4 fw-semibold">Discount:</p>
+            <p class="fs-4 fw-se" id="discount_before_confirm">$0.75</p>
+        </div>
+        <div class="d-flex mt-1 justify-content-between">
+            <p class="fs-4 fw-bold">Grand Total:</p>
+            <p class="fs-4 fw-normal" id="total_before_confirm">$3.00</p>
+        </div>
+        <div class="w-100 d-flex justify-content-center">
+            <button id="btn-confirm-order" class="btn-new shadow-new py-2 px-4 text-white w-50 mt-2">Confirm</button>
+        </div>
+</div>
+<div class="add_customer shadow-new px-2">
+    <header class="w-100 pt-5 px-3">
+        <h2 class="fs-2 fw-bold text-center">Add Customer</h2>
+    </header>
+    <label for="name" class="form-label">Customer Name</label>
+    <input id="customer_name_input" type="text" class="form-control" placeholder="Enter name">
+    <div class="d-flex justify-content-center mt-auto mb-1">
+        <button id="btn_add_custmer" class="w-25 btn-new shadow-new px-4 py-2 text-white fs-5 fw-semibold">Add</button>
+    </div>
+</div>
+<style>
+.add_customer{
+    opacity: 0;
+    display: flex;                 /* Apply Flexbox */
+    flex-direction: column;        /* Arrange child elements vertically */
+    justify-content: space-between; /* Distribute space between items */
+    min-height: 250px ;
+    width: 450px !important;
+    background-color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transition: all 0.3s ease-in-out;
+    transform: translate(-50%, -50%) scaleX(.2);
+    pointer-events: none ;
+    z-index: 100 !important; 
+}
+.add_customer.show_add_customer{
+    opacity: 1;
+    pointer-events: auto !important;
+    transform: translate(-50%, -50%) scaleX(1);
+}
+</style>
+{% endblock content %}
+    

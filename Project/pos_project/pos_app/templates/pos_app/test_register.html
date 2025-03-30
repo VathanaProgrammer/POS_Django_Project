@@ -8,58 +8,104 @@
 <meta name="Description" content="Enter your description here"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <title>Title</title>
 </head>
-<body class="container d-flex h-100 w-100 justify-content-center align-items-center" >
-    <form id="register-form" class="row" action="" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <div class="col-12">
-            <label for="name" class="form-label">Username</label>
-            <input type="text" name="username" class="form-control" placeholder="Enter username">
+<body class="container d-flex w-100 justify-content-center align-items-center vh-100" >
+    <div class="add_user_coontainer w-50 shadow p-4 d-flex flex-column " style="background: rgb(172, 172, 172) !important;" >
+        <div class=" d-flex">
+         <form action="" method="post" class="row  w-50" >
+           {% csrf_token %}
+           <header>
+             <h1 class="fs-3 fw-bold">Add New User</h1>
+           </header>
+           <div class="col-12">
+             <label for="" class="form-label fs-5 fw-bold">Name</label>
+             <input type="text" class="form-control mb-1" id="name_in_formm" placeholder="Enter name">
+           </div>
+           <div class="col-12">
+             <label for="" class="form-label fs-5 fw-bold">Password</label>
+             <input type="password" id="pww" class="form-control mb-1" placeholder="Enter password">
+           </div>
+           <div class="col-12">
+             <label for="" class="form-label fs-5 fw-bold">Role</label>
+             <select  id="role_info_addd" name="" class="form-select mb-1">
+               <option value="Cashier">Cashier</option>
+               <option value="Admin">Admin</option>
+             </select>
+           </div>
+           <div class="col-12">
+             <label for="" class="form-label fs-5 fw-bold">Image</label>
+             <input type="file" class="form-control mb-1" id="image_inputt">
+           </div>
+     
+         </form>
+         <div class="image w-50 d-flex justify-content-center align-items-center">
+           <img src="" alt="" id="image_previeww" class="d-none rounded-3" style="width: 185px !important; height: 220px !important;">
+           <span id="no_image_textt" style="display: block;">No image selected yet.</span>
+         </div>
         </div>
-        <div class="col-12">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" name="password" id="" class="form-control" placeholder="Enter password">
-        </div>
-        <div class="col-12">
-            <select class="form-select" name="role">
-                <option value="Admin">Admin</option>
-                <option value="Cashier">Cashier</option>
-            </select>
-        </div>
-        <div class="col-12">
-            <label for="image" class="form-label">Image</label>
-            <input type="file" name="image" class="form-control">
-        </div>
-        <div class="col-12">
-            <button class="btn btn-success" type="submit">Register</button>
-        </div>
-    </form>
+        <div class="d-flex justify-content-end mt-auto">
+         <button class="btn btn-new shadow-new py-2 px-4 text-white fs-5 fw-semibold btn btn-success" id="add_in_form">Add</button>
+     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/js/bootstrap.min.js"></script>
 <script>
     $(document).ready(function(){
-    $("#register-form").submit(function(e) {
-        e.preventDefault(); // Prevent default form submission
-    
-        var formData = new FormData(this); // Collect form data including image file
-    
-        $.ajax({
-            type: "POST",
-            url: "{% url 'register' %}", // The URL for the Django view
-            data: formData, // Sending the form data
-            processData: false, // Don't let jQuery process the data
-            contentType: false, // Don't set content-type header (FormData handles it)
-            success: function(response) {
-                alert(response.status)
-            },
-            error: function(response) {
-                alert(response.message);
-            }
+        function showAlert(title, icon, text, showCancel = false, confirmText = "OK", cancelText = "Cancel") {
+        return Swal.fire({
+            title: title,
+            icon: icon,
+            text: text,
+            showCancelButton: showCancel,
+            confirmButtonText: confirmText,
+            cancelButtonText: cancelText
         });
-    });
+    }
+        $("#add_in_form").click(function(){
+            const name = $("#name_in_formm").val().trim();
+            const password = $("#pww").val().trim();
+            const role = $("#role_info_addd").val().trim();
+            const image = $("#image_inputt")[0].files[0];
+            showAlert('Confirm', 'warning', 'Are you sure you want to add this user?', true)
+            .then((result) =>{
+                if(result.isConfirmed){
+                    var formData = new FormData(); // Collect form data including image file
+                    formData.append('username', name)
+                    formData.append('password', password)
+                    formData.append('role', role)
+                    if(image){
+                    formData.append('image', image)
+                    }
+                    let csrftoken = $("input[name=csrfmiddlewaretoken]").val(); // Get CSRF token
+                    $.ajax({
+                        type: "POST",
+                        url: "{% url 'register' %}", // The URL for the Django view
+                        data: formData, // Sending the form data
+                        processData: false, // Don't let jQuery process the data
+                        contentType: false, // Don't set content-type header (FormData handles it)
+                        headers: { 'X-CSRFToken': csrftoken }, // ✅ CSRF token
+                        success: function(response) {
+                            showAlert('Success', 'success', response.message)
+                            $("#name_in_formm").val('') // Clear the name input
+                            $("#pww").val('') // Clear the password input
+                            $("#role_info_addd").find("option[value='Cashier']").prop('selected', true) // Reset the role to 'Cashier'
+                            // Clear image input (file input)
+                            $('#image_inputt').val('')
+                            $("#no_image_textt").show()
+                            // Hide the image preview (set class to d-none)
+                            $("#image_previeww").addClass('d-none')
+        
+                        },
+                        error: function(response) {
+                            showAlert('Error', 'error', response.message)
+                        }
+                    });
+        
+                }
+            })
+          })
     
 })
 </script>

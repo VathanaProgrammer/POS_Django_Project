@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -7,29 +7,50 @@
 <meta name="Description" content="Enter your description here"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<title>Title</title>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<title>POS | Login</title>
 </head>
-<body class="d-flex justify-content-center">
-    <form id="login-form" class="row" action="" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <div class="col-12">
-            <label for="name" class="form-label">Username</label>
-            <input type="text" name="username" class="form-control" placeholder="Enter username">
+<body class="" style="background-color: #D4D4D4;">
+    <div class="form_container container d-flex vh-100 justify-content-center align-items-center">
+       <div class=" bg-white shadow-new d-flex " style="width: 900px; height: 400px;"  >
+        <div class="image w-50">
+            <img src="{% static 'pos_app/images/Arktura-SoundStar-Los-Angeles-CA_WEB_1-scaled.jpg' %}" alt=""  style="width: 100% ; height: 100%;">
         </div>
-        <div class="col-12">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" name="password" id="" class="form-control" placeholder="Enter password">
+        <div class="form w-50 p-4 d-flex justify-content-center align-items-center">
+            <form id="login-form" class="row" action="" method="post" enctype="multipart/form-data">
+                <h1 class="text-center fs-1 fw-bold">Login</h1>
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="col-12">
+                    <label for="name" class="form-label text-muted fs-5 fw-bold">Username</label>
+                    <input type="text" name="username" class="form-control" placeholder="Enter username">
+                </div>
+                <div class="col-12">
+                    <label for="password " class="form-label fs-5 fw-bold text-muted mt-2">Password</label>
+                    <input type="password" name="password" id="" class="form-control" placeholder="Enter password">
+                </div>
+                <div class="col-12 w-100 mt-2">
+                    <button class="btn w-100 btn-success fs-5 fw-bold" type="submit">Login</button>
+                </div>
+            </form>
         </div>
-        <div class="col-12">
-            <button class="btn btn-success" type="submit">Login</button>
-        </div>
-    </form>
+       </div>
+   </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/js/bootstrap.min.js"></script>
 <script>
     $(document).ready(function() {
+                function showAlert(title, icon, text, showCancel = false, confirmText = "OK", cancelText = "Cancel") {
+        return Swal.fire({
+            title: title,
+            icon: icon,
+            text: text,
+            showCancelButton: showCancel,
+            confirmButtonText: confirmText,
+            cancelButtonText: cancelText
+        });
+    }
         $("#login-form").submit(function(e) {
             e.preventDefault(); // Prevent default form submission
     
@@ -46,12 +67,12 @@
                 contentType: false, // Don't set content-type header (FormData handles it)
                 success: function(response) {
                     console.log("Success:", response.message); // Log the response to check structure
-                    window.location.href = '/';
+                    window.location.href = '/pos_view/';
                 },
-                error: function(response) {
-                    alert(response.message);  // Show more specific error info
-                    // Log the full error response
-                    
+                error: function(xhr, status, error) {
+                // Accessing the message from the JSON response
+                var errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : "An error occurred!";
+                    showAlert('Error', 'error', errorMessage)
                 }
             });
         });

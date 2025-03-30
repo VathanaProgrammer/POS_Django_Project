@@ -1,179 +1,7 @@
 {% extends "pos_app/base.html" %}
 {% block title %} Pos | Inventory {% endblock title %}
 {% block content %}
-<style>
-    .btn-new{
-        background-color: #007C40 !important;
-    }
-    .shadow-new{
-        box-shadow: 2px 3px 3px 2px rgb(151, 151, 151); /* X: 2px, Y: 4px, Blur: 4px, Spread: 2px, Color: #000 */
-    }
-    .inventory_container{
-        width: 100% !important;
-    }
-    .product_section{
-        width: 70% !important;
-    }
-    .low_stock_section{
-        width: 30% !important;
-    }
-    .custom-dropdown {
-        position: relative;
-        display: inline-block;
-    }
 
-    .custom-dropdown-btn {
-        background-color: #007C40;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    .custom-dropdown-menu {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        background-color: white;
-        min-width: 160px;
-        box-shadow: 2px 3px 3px 2px rgb(151, 151, 151);
-        border-radius: 5px;
-        opacity: 0;
-        transform: translateY(0px);
-        visibility: hidden;
-        pointer-events: none;
-        transition: all 0.3s ease-in-out;
-        z-index: 10;
-    }
-
-    .custom-dropdown-menu.show {
-        opacity: 1;
-        transform: translateY(10px);
-        visibility: visible;
-        pointer-events: auto;
-    }
-
-    .custom-dropdown-menu li {
-        list-style: none;
-    }
-
-    .custom-dropdown-menu li a {
-        display: block;
-        padding: 10px 15px;
-        text-decoration: none;
-        color: black;
-        z-index: 120 !important;
-    }
-
-    .custom-dropdown-menu li a:hover {
-        background-color: #f0f0f0;
-    }
-    .custom-dropdown-btn i {
-    transition: all 0.3s ease;
-}
-
-.rotate {
-    transform: rotate(180deg);
-}
-
-#search:focus{
-        border: none !important;
-        outline: none; /* Removes the default focus outline */
-    }
-    input::placeholder{
-        color: rgb(216, 216, 216) !important;
-    }
-
-    #add_product {
-        opacity: 0;
-        pointer-events: none;
-        position: absolute !important;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        transition: all 0.4s ease;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scaleY(.2);
-        z-index: 99 !important;
-        background: white !important;
-    }
-    #add_category{
-        opacity: 0;
-        pointer-events: none;
-        position: absolute !important;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        transition: all 0.4s ease;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scaleY(.2);
-        z-index: 99 !important;
-        background: white !important;
-    }
-    #add_product.show_add_pro_form {
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        transform: translate(-50%, -50%) scaleY(1);
-    }
-    #add_category.show_add_pro_form {
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        transform: translate(-50%, -50%) scaleY(1);
-    }
-    #category{
-        opacity: 0;
-        pointer-events: none;
-        position: absolute !important;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        transition: all 0.4s ease;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scaleY(.2);
-        z-index: 99 !important;
-        background: white !important;
-    }
-    #category.show_add_pro_form{
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        transform: translate(-50%, -50%) scaleY(1);
-    }
-
-    #preview_image {
-        max-width: 250px !important;
-        max-height: 180px !important;
-        object-fit: contain;
-        display: block;
-    }
-    #preview_image:empty::before {
-    content: 'No Image';
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 100%;
-    color: #888;
-}
-
-    @keyframes scaleAnimation {
-    0% {
-        transform: translate(-50%, -50%) scaleY(0.1);  /* Start with 20% size */
-        opacity: 0;
-    }
-    10% {
-        transform: translate(-50%, -50%) scaleY(0.2);  /* Pause at 20% size */
-        opacity: 1;  /* Show full opacity */
-    }
-    100% {
-        transform: translate(-50%, -50%) scaleY(1);  /* Full size */
-        opacity: 1;
-    }
-}
-</style>
 
 
 <div class="inventory_container d-flex mt-4">
@@ -189,11 +17,13 @@
               </a>
         </div>
         <div class="d-flex ">
-            <div class="btn-new py-2 me-2 px-3 shadow-new d-flex align-items-center">
-                <i class="fa-regular fa-bell text-white fs-5"></i>
+            <div class="btn-new py-2 me-2 px-3 shadow-new d-flex align-items-center position-relative">
+                <i class="fa-regular fa-bell text-white fs-5" id="notif_fa-bell_btn" style="cursor: pointer !important;">
+                    <p id="notif_fa-bell" class="d-none p-2 bg-danger rounded-circle text-white position-absolute top-1 right-1"></p>
+                </i>
             </div>
             <div class="custom-dropdown btn-new  text-white shadow-new">
-                <button class="custom-dropdown-btn px-4" id="new_pro_or_cate">
+                <button class="custom-dropdown-btn fs-5 px-4" id="new_pro_or_cate">
                     <span class="fs-5 fw-bold">New</span>
                     <i class="fa-solid fa-chevron-up ms-2" id="dropdownIcon_new"></i>
                 </button>
@@ -241,52 +71,36 @@
                 </button>
             </div>
         </div>
-        <div class="table_container mt-3" style="min-height: 500px !important; height: auto !important; overflow-y: auto !important;">
-            <table class="table table-hover text-center">
+        <div class="low_stock_table_container_listt mt-4 pt-2" style="height: 487px !important; overflow-y: auto !important">
+            <table class="table table-hover position-relative"  >
                 <thead>
                     <tr>
                         <th>Product Name</th>
                         <th>SKU</th>
                         <th>Quantity</th>
                         <th>Price</th>
+                        <th>Discount</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody>
-                   {% if products %}
-                        {% for product in products %}
-                            <tr>
-                                <td class="pt-3">{{ product.name }}</td>
-                                <td class="pt-3">{{ product.sku }}</td>
-                                <td class="pt-3">{{ product.quantity_in_stock }}</td>
-                                <td class="pt-3">{{ product.price }}</td>
-                                <td class="pt-3">{{ product.status }}</td>
-                                <td>
-                                    <button class="btn btn-warning btn-edit" data-product_id="{{ product.id }}" data-category_id="{{product.category.id}}" data-category_name="{{ product.category.name}}" data-image="{{product.image.url}}">Edit</button>
-                                    <button class="btn btn-danger btn-delete" data-product_id="{{ product.id }}" data-category_id="{{product.category.id}}" data-category_name="{{ product.category.name}}" data-product_name="{{product.name}}">Delete</button>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% else %}
-                            <p class="text-center">Products empty.</p>
-                   {% endif %}
+                <tbody class="overflow-auto" id="product-listt">
+                  
                 </tbody>
             </table>
         </div>
-          
     </section>
     <section class="low_stock_section d-flex flex-column m-3 ms-2 p-4 shadow-new bg-white" style="height: 100% !important; ">
                 <h1 class="text-start fs-3 fw-bold ">Low Stock</h1>
-                <div class="low_stock_table_container mt-4 pt-2" style="min-height: 487px !important; height: auto !important; overflow-y: auto !important">
-                    <table class="table table-hover position-relative" >
+                <div class="low_stock_table_container mt-4 pt-2" style="height: 487px !important; overflow-y: auto !important">
+                    <table class="table table-hover position-relative"  >
                         <thead>
                             <tr>
                                 <th>Product Name</th>
                                 <th>Quantity Left</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="overflow-auto">
                             {% if low_stock_quantity %}
                                 {% for low_stock in low_stock_quantity %}
                                     <tr>
@@ -304,7 +118,7 @@
 
 
 </div>
-<form method="post" id="add_product" class="add_product_container d-flex flex-column shadow-new p-4" style="height: 700px !important; width: 700px !important;">
+<form method="post" id="add_product" class="add_product_container d-flex flex-column shadow-new p-4" enctype="multipart/form-data" style="height: 700px !important; width: 700px !important;">
     {% csrf_token %}  <!-- Add this line -->
     <header class="d-flex justify-content-between w-100 align-items-center px-3">
         <h2 class="fs-2 fw-bold " id="add_product_header">Add New Product</h2>
@@ -345,6 +159,10 @@
             <div class="col-12 mb-1">
                 <label for="price" class="form-label fs-5 fw-bold">Price</label>
                 <input id="price" type="text" class="form-control" placeholder="Enter product price">
+            </div>
+            <div class="col-12 mb-1">
+                <label for="discount" class="form-label fs-5 fw-bold">Discount</label>
+                <input id="discount" type="text" class="form-control" placeholder="Enter product discount">
             </div>
             <div class="col-12 mb-1">
                 <label for="image" class="form-label fs-5 fw-bold">Image</label>
@@ -422,4 +240,5 @@
         outline: none !important;">Close</button>
     </section>
 </div>
+
 {% endblock content %}

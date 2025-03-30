@@ -1,10 +1,10 @@
 from django.urls import path
 from . import views
 urlpatterns = [
-    path('', views.home, name = "home"),
+    path('home', views.home, name = "home"),
     path('register/', views.register, name="register"),
     path('register_form/', views.register_form, name="register_form"),
-    path('login_form/', views.login_form, name='login_form'),
+    path('', views.login_form, name='login_form'),
     path('login/', views.login_view, name="login"),
     path('logout/', views.logout_user, name='logout'),
     path('inventory/', views.inventory_view, name='inventory'),
@@ -13,5 +13,29 @@ urlpatterns = [
     path('update_product/', views.update_product, name="update_product"),
     path('delete_product/', views.delete_product, name = 'delete_product'),
     path('update_category/', views.update_category, name = "update_category"),
-    path('delete_category/', views.delete_category, name='delete_category')
+    path('delete_category/', views.delete_category, name='delete_category'),
+    path('search-products/', views.search_products, name = "search_products"),
+    path('pos_view/', views.pos_view, name = "pos_view"),
+    path('load_product_in_pos/', views.show_product_by_category, name = "load_product_in_pos"),
+    path('generate_receipt/', views.generate_receipt, name='generate_receipt'),
+    path('dasboard_view/', views.dasboard_view, name="dasboard_view"),
+    path('sale_counts/', views.total_sale_counts, name = "sale_counts"),
+    path('total_order/',views.total_orders, name='total_orders'),
+    path('total_customer/', views.total_customers, name="total_customers"),
+    path('total-product/', views.total_product_in_stock, name="total_product"),
+    path('top-selling-product/', views.top_selling_products, name='top_selling_product'),
+    path('low-stock-product/', views.low_product, name = "low_stock"),
+    path('recent-transaction/', views.recent_transactions, name="recent_transaction"),
+    path('report_view/', views.report_view, name="report_view"),
+    path('sale-summary/', views.sales_summary, name='sale_summary'),
+    path('fetch-products/', views.fetch_products, name = 'fetch_products'),
+    path('setting-view/',views.setting_view, name='setting_view'),
+    path('company-settings/', views.company_settings, name='company_setting'),
+    path('cashier-setting/', views.setting_cashier, name="setting_cashier"),
+    path('general_setting/', views.setting_general, name="setting_general"),
+    path('all_cashier/', views.setting_cashier_all, name='all_cashiers'),
+    path('update-user/', views.update_user, name="update_user"),
+    path('delete-user/', views.delete_user, name="delete_user"),
+    path('fetch-product-low-stock', views.fetch_low_stock_products, name="fetch_low_stock_products"),
+    path('address-and-name/', views.com_name_and_addr, name="name_and_addr")
 ]

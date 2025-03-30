@@ -1,14 +1,16 @@
 from django import forms
-from .models import User  # Assuming you have a custom User model
+from .models import User
 
 # forms.py
 from django import forms
 
 class UserRegistrationForm(forms.Form):
-    username = forms.CharField(max_length=100)
-    password = forms.CharField(widget=forms.PasswordInput)
-    role = forms.ChoiceField(choices=[('Admin', 'Admin'), ('Cashier', 'Cashier')])
-    image = forms.ImageField()
+    class Meta:
+        model = User
+        fields = ['username', 'password', 'role', 'image']
+        widgets = {
+            'password': forms.PasswordInput(),  # Ensures password input is masked
+        }
 
     # Optionally add custom validation
     def clean_username(self):
