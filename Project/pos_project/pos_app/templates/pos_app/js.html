@@ -354,6 +354,7 @@
     })
 
     $(document).on('click', '.btn-edit-category', function () {
+        alert('fsafs')
     const category_id = $(this).data('category_id');
     const category_name = $(this).closest('tr').find('td:eq(0)').text().trim();
     
@@ -361,14 +362,11 @@
     console.log('Category Name:', category_name);
 
     // Toggle the visibility of the category form
-    $('#add_category').toggleClass('show_add_pro_form');
-    
-    // Check if the class is added properly
-    console.log($('#add_category').hasClass('show_add_pro_form'));
+    $('#add_category').toggleClass('show_ad');
     const category_form = $('#category');
-    if(category_form.hasClass('show_add_pro_form')){
-        category_form.removeClass('show_add_pro_form')
-    }
+    // if(category_form.hasClass('show_add_pro_form')){
+    //     category_form.removeClass('show_add_pro_form')
+    // }
     $('#add_new_category').text('Update Category');
     $('#category_name').val(category_name);
     $('#btn_submit_category').text('Update');
